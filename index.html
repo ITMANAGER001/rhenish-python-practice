@@ -483,9 +483,10 @@ function parseRosterText(text) {
     .map(line => line.trim())
     .filter(Boolean)
     .map(line => {
-      const parts = line.split(",");
+      // Supports comma-separated ("Name, Class") or tab-separated (pasted from Excel)
+      const parts = line.includes("\t") ? line.split("\t") : line.split(",");
       const name = parts[0].trim();
-      const className = parts.length > 1 ? parts.slice(1).join(",").trim() : "";
+      const className = parts.length > 1 ? parts.slice(1).join(" ").trim() : "";
       return { name, className };
     })
     .filter(r => r.name.length > 0);
