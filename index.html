@@ -223,11 +223,11 @@
   <div id="view-student">
     <div class="card">
       <div class="row">
-        <div>
+        <div id="learnerNameContainer">
           <label for="learnerName">Your name</label>
           <input type="text" id="learnerName" placeholder="First and last name">
         </div>
-        <div>
+        <div id="learnerClassContainer">
           <label for="learnerClass">Class</label>
           <input type="text" id="learnerClass" placeholder="e.g. 4A">
         </div>
@@ -250,6 +250,16 @@
   </div>
 
   <div id="view-teacher" style="display:none;">
+    <div class="card no-print">
+      <label for="rosterField">Class list (one learner per line — optionally add a class after a comma, e.g. "Zoe Adams, 4A")</label>
+      <textarea class="note-field" id="rosterField" style="min-height:110px;" placeholder="Zoe Adams, 4A&#10;Sam Petersen, 4A&#10;Thabo Nkosi, 4B"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="loadRoster()">Reload saved list</button>
+        <button class="btn btn-primary" onclick="saveRoster()">Save class list</button>
+      </div>
+      <div class="note" id="rosterStatus">Once saved, learners pick their name from a dropdown on the Practice tab instead of typing it — no typos, no duplicate spellings.</div>
+    </div>
+
     <div class="card no-print">
       <div class="row">
         <div>
@@ -434,8 +444,149 @@ const EXERCISES = [
   }
 ];
 
+// ── Cloud storage setup ──────────────────────────────────────────
+// Sign up free at https://jsonbin.io, create one bin (starting content: {})
+// then paste your Bin ID and X-Master-Key below.
+const JSONBIN_ID = "6aa5659aac6210605ac4dea6";
+const JSONBIN_KEY = "$2a$10$6MwcSFNWPWcVa50X22vSsuUw5pIvZcGKF3AaQIqOyN0Dc0UfiQpu.";
+const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+
+async function fetchRemoteState() {
+  const res = await fetch(`${JSONBIN_URL}/latest`, {
+    headers: { "X-Master-Key": JSONBIN_KEY, "X-Bin-Meta": "false" }
+  });
+  if (!res.ok) throw new Error("Could not reach cloud storage");
+  const data = await res.json();
+  return {
+    roster: Array.isArray(data.roster) ? data.roster : [],
+    results: Array.isArray(data.results) ? data.results : [],
+    notes: data.notes && typeof data.notes === "object" ? data.notes : {}
+  };
+}
+
+async function saveRemoteState(state) {
+  const res = await fetch(JSONBIN_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_KEY },
+    body: JSON.stringify(state)
+  });
+  if (!res.ok) throw new Error("Could not save to cloud storage");
+}
+
 let pyodide = null;
 let lastScore = null;
+let roster = []; // [{ name, className }]
+
+function parseRosterText(text) {
+  return text
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const parts = line.split(",");
+      const name = parts[0].trim();
+      const className = parts.length > 1 ? parts.slice(1).join(",").trim() : "";
+      return { name, className };
+    })
+    .filter(r => r.name.length > 0);
+}
+
+function rosterToText(list) {
+  return list.map(r => r.className ? `${r.name}, ${r.className}` : r.name).join("\n");
+}
+
+async function loadRoster() {
+  const statusEl = document.getElementById("rosterStatus");
+  try {
+    const state = await fetchRemoteState();
+    roster = state.roster;
+  } catch (e) {
+    roster = [];
+    statusEl.textContent = "Could not reach cloud storage — check the Bin ID and Key are pasted in correctly.";
+    renderLearnerNameField();
+    return;
+  }
+  document.getElementById("rosterField").value = rosterToText(roster);
+  statusEl.textContent = roster.length
+    ? `${roster.length} learner(s) loaded.`
+    : "No class list saved yet — paste one above and click Save.";
+  renderLearnerNameField();
+  populateReportLearnerSelect();
+}
+
+async function saveRoster() {
+  const text = document.getElementById("rosterField").value;
+  roster = parseRosterText(text);
+  const statusEl = document.getElementById("rosterStatus");
+  try {
+    const state = await fetchRemoteState();
+    state.roster = roster;
+    await saveRemoteState(state);
+    statusEl.textContent = `Saved! ${roster.length} learner(s) on the list.`;
+  } catch (e) {
+    statusEl.textContent = "Could not save the class list — check the Bin ID and Key are pasted in correctly.";
+    return;
+  }
+  renderLearnerNameField();
+  populateReportLearnerSelect();
+}
+
+function renderLearnerNameField() {
+  const nameContainer = document.getElementById("learnerNameContainer");
+  const classContainer = document.getElementById("learnerClassContainer");
+  if (!roster.length) {
+    nameContainer.innerHTML = `
+      <label for="learnerName">Your name</label>
+      <input type="text" id="learnerName" placeholder="First and last name">
+    `;
+    classContainer.innerHTML = `
+      <label for="learnerClass">Class</label>
+      <input type="text" id="learnerClass" placeholder="e.g. 4A">
+    `;
+    return;
+  }
+  const options = roster
+    .map((r, i) => `<option value="${i}">${escapeHtml(r.name)}${r.className ? " (" + escapeHtml(r.className) + ")" : ""}</option>`)
+    .join("");
+  nameContainer.innerHTML = `
+    <label for="learnerNameSelect">Your name</label>
+    <select id="learnerNameSelect" onchange="onLearnerSelectChange()">
+      <option value="">Choose your name…</option>
+      ${options}
+      <option value="__other__">Not on the list…</option>
+    </select>
+    <input type="hidden" id="learnerName" value="">
+  `;
+  classContainer.innerHTML = `
+    <label for="learnerClass">Class</label>
+    <input type="text" id="learnerClass" placeholder="e.g. 4A">
+  `;
+}
+
+function onLearnerSelectChange() {
+  const sel = document.getElementById("learnerNameSelect");
+  const nameContainer = document.getElementById("learnerNameContainer");
+  const classInput = document.getElementById("learnerClass");
+  if (sel.value === "__other__") {
+    nameContainer.innerHTML = `
+      <label for="learnerName">Your name</label>
+      <input type="text" id="learnerName" placeholder="First and last name">
+      <div class="note"><a href="#" onclick="renderLearnerNameField(); return false;">Back to the list</a></div>
+    `;
+    return;
+  }
+  const hidden = document.getElementById("learnerName");
+  if (sel.value === "") {
+    hidden.value = "";
+    classInput.value = "";
+    return;
+  }
+  const r = roster[Number(sel.value)];
+  hidden.value = r.name;
+  classInput.value = r.className || "";
+}
+
+
 
 function populateExerciseSelect() {
   const sel = document.getElementById("exerciseSelect");
@@ -677,13 +828,12 @@ async function submitResult() {
   const name = document.getElementById("learnerName").value.trim();
   const statusEl = document.getElementById("status");
   if (!name) {
-    statusEl.textContent = "Please type your name before saving your score.";
+    statusEl.textContent = "Please choose or type your name before saving your score.";
     return;
   }
   if (!lastScore) return;
   const learnerClass = document.getElementById("learnerClass").value.trim();
-  const key = `results:${name}:${lastScore.exerciseId}`;
-  const value = JSON.stringify({
+  const newResult = {
     learner: name,
     learnerClass: learnerClass,
     exerciseId: lastScore.exerciseId,
@@ -691,13 +841,19 @@ async function submitResult() {
     score: lastScore.passed,
     total: lastScore.total,
     timestamp: new Date().toISOString()
-  });
+  };
+  statusEl.textContent = "Saving…";
   try {
-    await window.storage.set(key, value, true);
+    const state = await fetchRemoteState();
+    state.results = state.results.filter(
+      r => !(r.learner === name && r.exerciseId === lastScore.exerciseId)
+    );
+    state.results.push(newResult);
+    await saveRemoteState(state);
     statusEl.textContent = "Saved! Your teacher can now see this score.";
     document.getElementById("submitBtn").disabled = true;
   } catch (e) {
-    statusEl.textContent = "Could not save your score. Try again.";
+    statusEl.textContent = "Could not save your score — check your internet connection and try again.";
   }
 }
 
@@ -715,29 +871,24 @@ async function loadTeacherData() {
   const wrap = document.getElementById("teacherTableWrap");
   wrap.innerHTML = `<div class="empty-note">Loading…</div>`;
   try {
-    const listResult = await window.storage.list("results:", true);
-    const keys = (listResult && listResult.keys) ? listResult.keys : [];
-    const rows = [];
-    for (const k of keys) {
-      try {
-        const r = await window.storage.get(k, true);
-        if (r && r.value) rows.push(JSON.parse(r.value));
-      } catch (e) {}
-    }
-    teacherResults = rows;
+    const state = await fetchRemoteState();
+    teacherResults = state.results;
+    roster = state.roster;
     renderTeacherTable();
     populateReportLearnerSelect();
   } catch (e) {
-    wrap.innerHTML = `<div class="empty-note">No results saved yet.</div>`;
+    wrap.innerHTML = `<div class="empty-note">Could not reach cloud storage — check the Bin ID and Key are pasted in correctly.</div>`;
   }
 }
 
 function populateReportLearnerSelect() {
   const sel = document.getElementById("reportLearnerSelect");
-  const names = [...new Set(teacherResults.map(r => r.learner))].sort((a, b) => a.localeCompare(b));
+  const rosterNames = roster.map(r => r.name);
+  const resultNames = teacherResults.map(r => r.learner);
+  const names = [...new Set([...rosterNames, ...resultNames])].sort((a, b) => a.localeCompare(b));
   const current = sel.value;
   sel.innerHTML = names.length
-    ? names.map(n => `<option value="${n}">${n}</option>`).join("")
+    ? names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("")
     : `<option value="">No learners yet</option>`;
   if (names.includes(current)) sel.value = current;
   loadNotesForSelectedLearner();
@@ -749,11 +900,11 @@ async function loadNotesForSelectedLearner() {
   document.getElementById("focusField").value = "";
   if (!name) return;
   try {
-    const r = await window.storage.get(`notes:${name}`, true);
-    if (r && r.value) {
-      const parsed = JSON.parse(r.value);
-      document.getElementById("strengthsField").value = parsed.strengths || "";
-      document.getElementById("focusField").value = parsed.focus || "";
+    const state = await fetchRemoteState();
+    const n = state.notes[name];
+    if (n) {
+      document.getElementById("strengthsField").value = n.strengths || "";
+      document.getElementById("focusField").value = n.focus || "";
     }
   } catch (e) {}
 }
@@ -765,7 +916,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function saveNotes(name, strengths, focus) {
   try {
-    await window.storage.set(`notes:${name}`, JSON.stringify({ strengths, focus }), true);
+    const state = await fetchRemoteState();
+    state.notes[name] = { strengths, focus };
+    await saveRemoteState(state);
   } catch (e) {}
 }
 
@@ -782,7 +935,8 @@ async function buildReport() {
   await saveNotes(name, strengths, focus);
 
   const rows = teacherResults.filter(r => r.learner === name);
-  const learnerClass = rows.length ? (rows.find(r => r.learnerClass)?.learnerClass || "") : "";
+  const rosterEntry = roster.find(r => r.name === name);
+  const learnerClass = (rows.find(r => r.learnerClass)?.learnerClass) || (rosterEntry ? rosterEntry.className : "") || "";
   let totalScore = 0, totalPossible = 0;
   let exerciseRowsHtml = "";
   for (const ex of EXERCISES) {
@@ -860,6 +1014,15 @@ function renderTeacherTable() {
 async function boot() {
   populateExerciseSelect();
   loadExercise();
+  try {
+    const state = await fetchRemoteState();
+    roster = state.roster;
+  } catch (e) {
+    roster = [];
+  }
+  renderLearnerNameField();
+  const rosterField = document.getElementById("rosterField");
+  if (rosterField) rosterField.value = rosterToText(roster);
   document.getElementById("status").textContent = "Loading Python engine (first time may take a moment)…";
   try {
     pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
