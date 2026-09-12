@@ -307,6 +307,7 @@ const EXERCISES = [
   {
     id: "print_basic",
     mode: "output",
+    term: 1,
     title: "1. The print() function",
     starter: "# Use print() below to display the message\n\n",
     desc: "Use the <code>print()</code> function to display exactly this message on the screen: <strong>Hello, World!</strong>",
@@ -317,6 +318,7 @@ const EXERCISES = [
   {
     id: "comments",
     mode: "output",
+    term: 1,
     title: "2. Comments with #",
     starter: "print(\"I love Python!\")\n",
     desc: "Add a comment above the print statement, starting with <code>#</code>, explaining what the line does. Keep the print statement working so it still shows: <strong>I love Python!</strong>",
@@ -328,6 +330,7 @@ const EXERCISES = [
   {
     id: "multiline",
     mode: "output",
+    term: 1,
     title: "3. Multi-line strings",
     starter: "print(\"\"\"\n\n\"\"\")\n",
     desc: "Use one <code>print()</code> statement with a triple-quoted string (<code>\"\"\" \"\"\"</code>) to display these three lines exactly:<br><br>Coding Club<br>Grade 4<br>Rhenish Primary",
@@ -336,9 +339,21 @@ const EXERCISES = [
     ]
   },
   {
+    id: "newline_escape",
+    mode: "output",
+    term: 1,
+    title: "4. The \\n newline character",
+    starter: "# Use \\n inside the string to make it print on two lines\nprint(\"\")\n",
+    desc: "There's another way to print multiple lines with just one <code>print()</code> statement — using <code>\\n</code> inside a normal string. Use it to display exactly:<br><br>Coding &amp; Robotics<br>Rhenish Primary",
+    checks: [
+      { type: "equals", expected: "Coding & Robotics\nRhenish Primary" }
+    ]
+  },
+  {
     id: "variables",
     mode: "output",
-    title: "4. Variables",
+    term: 1,
+    title: "5. Variables",
     starter: "# create your variables below\n\n\nprint(f\"I am {age} years old and in grade {grade}\")\n",
     desc: "Create a variable called <code>age</code> set to 12, and a variable called <code>grade</code> set to 5. The last line already prints them for you — don't change it. You should get exactly: <strong>I am 12 years old and in grade 5</strong>",
     checks: [
@@ -346,18 +361,9 @@ const EXERCISES = [
     ]
   },
   {
-    id: "math",
-    mode: "output",
-    title: "5. Math operators",
-    starter: "bags = 3\nsweets_per_bag = 15\nextra = 2\n\n# calculate the total and print ONLY the number\n",
-    desc: "Using the variables already given, calculate the total sweets (3 bags of 15 sweets each, plus 2 extra) and print just the number. You should get exactly: <strong>47</strong>",
-    checks: [
-      { type: "equals", expected: "47" }
-    ]
-  },
-  {
     id: "input_greet",
     mode: "output_input",
+    term: 1,
     title: "6. Getting input from the user",
     starter: "name = input(\"What is your name? \")\n# print a welcome message using name, e.g. Hello, Zoe! Welcome to Python.\n",
     desc: "Use <code>input()</code> to ask \"What is your name?\", store the answer in a variable called <code>name</code>, then print: <strong>Hello, &lt;name&gt;! Welcome to Python.</strong> (with whatever name was typed in)",
@@ -368,9 +374,68 @@ const EXERCISES = [
     ]
   },
   {
+    id: "debug_print",
+    mode: "output",
+    term: 1,
+    title: "7. Debug it: fix the print statement",
+    starter: "print(\"Hello, World!)\n",
+    desc: "This code has a mistake in it and won't run. Find it and fix it so it prints exactly: <strong>Hello, World!</strong>",
+    checks: [
+      { type: "equals", expected: "Hello, World!" }
+    ]
+  },
+  {
+    id: "debug_comment",
+    mode: "output",
+    term: 1,
+    title: "8. Debug it: find the missing output",
+    starter: "name = \"Coding Club\"\n# print(f\"Welcome to {name}!\")\n",
+    desc: "This code should print a welcome message, but nothing shows up when you run it. Find the mistake and fix it so it prints exactly: <strong>Welcome to Coding Club!</strong>",
+    checks: [
+      { type: "equals", expected: "Welcome to Coding Club!" }
+    ]
+  },
+  {
+    id: "debug_variable",
+    mode: "output",
+    term: 1,
+    title: "9. Debug it: fix the variable name",
+    starter: "age = 12\ngrade = 5\nprint(f\"I am {age} years old and in grade {Grade}\")\n",
+    desc: "There's a mistake in this code — one of the variable names doesn't match how it was created. Find it and fix it so it prints exactly: <strong>I am 12 years old and in grade 5</strong>",
+    checks: [
+      { type: "equals", expected: "I am 12 years old and in grade 5" }
+    ]
+  },
+  {
+    id: "term1_assessment",
+    mode: "output_input",
+    term: 1,
+    requireComment: true,
+    title: "10. End of Term 1 Assessment",
+    starter: "grade = 5\n\n# add a comment here explaining what this program does\n\n\n# ask for the learner's name below\n",
+    desc: "This assessment brings together everything from this term. Using the variable <code>grade</code> already given (set to 5):<br><br>1. Add a comment above your code explaining what it does<br>2. Use <code>input()</code> to ask \"What is your name?\" and store it in a variable called <code>name</code><br>3. Print exactly: <strong>Hello, &lt;name&gt;! Welcome to Grade 5 Coding Club.</strong> (with whatever name was typed in)",
+    tests: [
+      { inputs: ["Zoe"], expected: "Hello, Zoe! Welcome to Grade 5 Coding Club." },
+      { inputs: ["Thabo"], expected: "Hello, Thabo! Welcome to Grade 5 Coding Club." },
+      { inputs: ["Sam"], expected: "Hello, Sam! Welcome to Grade 5 Coding Club." }
+    ]
+  },
+  {
+    id: "math",
+    mode: "output",
+    term: 2,
+    title: "11. Math operators",
+    starter: "bags = 3\nsweets_per_bag = 15\nextra = 2\n\n# calculate the total and print ONLY the number\n",
+    desc: "Using the variables already given, calculate the total sweets (3 bags of 15 sweets each, plus 2 extra) and print just the number. You should get exactly: <strong>47</strong>",
+    checks: [
+      { type: "equals", expected: "47" }
+    ]
+  },
+  {
     id: "ifelse",
     mode: "output",
-    title: "7. If statements",
+    term: 2,
+    title: "12. If statements",
     starter: "num = -4\n\n# write an if/else below that prints \"Negative\" if num is less than 0,\n# otherwise prints \"Positive or zero\"\n",
     desc: "The variable <code>num</code> is already set to -4. Write an if/else statement that prints exactly \"Negative\" if num is less than 0, otherwise prints \"Positive or zero\".",
     checks: [
@@ -380,7 +445,8 @@ const EXERCISES = [
   {
     id: "greet",
     mode: "function",
-    title: "8. Write a function: greet a friend",
+    term: 4,
+    title: "13. Write a function: greet a friend",
     fn: "greet",
     starter: "def greet(name):\n    # return a greeting like \"Hello, Zoe!\"\n    return \"\"\n",
     desc: "Complete the function <code>greet(name)</code> so it returns the text \"Hello, \" followed by the name and an exclamation mark. Example: greet(\"Zoe\") should return \"Hello, Zoe!\"",
@@ -393,7 +459,8 @@ const EXERCISES = [
   {
     id: "add",
     mode: "function",
-    title: "9. Write a function: add two numbers",
+    term: 4,
+    title: "14. Write a function: add two numbers",
     fn: "add_numbers",
     starter: "def add_numbers(a, b):\n    # return the sum of a and b\n    return 0\n",
     desc: "Complete <code>add_numbers(a, b)</code> so it returns the sum of the two numbers.",
@@ -406,7 +473,8 @@ const EXERCISES = [
   {
     id: "even",
     mode: "function",
-    title: "10. Write a function: is it even?",
+    term: 4,
+    title: "15. Write a function: is it even?",
     fn: "is_even",
     starter: "def is_even(n):\n    # return True if n is even, otherwise False\n    return False\n",
     desc: "Complete <code>is_even(n)</code> so it returns True when the number is even, and False when it is odd.",
@@ -419,7 +487,8 @@ const EXERCISES = [
   {
     id: "sumlist",
     mode: "function",
-    title: "11. Write a function: add up a list",
+    term: 4,
+    title: "16. Write a function: add up a list",
     fn: "sum_list",
     starter: "def sum_list(numbers):\n    # return the total of all numbers in the list\n    total = 0\n    return total\n",
     desc: "Complete <code>sum_list(numbers)</code> so it adds up every number in the list and returns the total.",
@@ -432,7 +501,8 @@ const EXERCISES = [
   {
     id: "vowels",
     mode: "function",
-    title: "12. Write a function: count the vowels",
+    term: 4,
+    title: "17. Write a function: count the vowels",
     fn: "count_vowels",
     starter: "def count_vowels(word):\n    # count how many letters a, e, i, o, u are in word\n    count = 0\n    return count\n",
     desc: "Complete <code>count_vowels(word)</code> so it counts how many vowels (a, e, i, o, u — lowercase) are in the word.",
@@ -443,6 +513,8 @@ const EXERCISES = [
     ]
   }
 ];
+
+const TERM_LABELS = { 1: "Term 1", 2: "Term 2", 3: "Term 3", 4: "Term 4" };
 
 // ── Cloud storage setup ──────────────────────────────────────────
 // Sign up free at https://jsonbin.io, create one bin (starting content: {})
@@ -629,7 +701,18 @@ function updateExerciseLocking() {
 
 function populateExerciseSelect() {
   const sel = document.getElementById("exerciseSelect");
-  sel.innerHTML = EXERCISES.map((e, i) => `<option value="${i}">${e.title}</option>`).join("");
+  let html = "";
+  let currentTerm = null;
+  EXERCISES.forEach((e, i) => {
+    if (e.term !== currentTerm) {
+      if (currentTerm !== null) html += `</optgroup>`;
+      currentTerm = e.term;
+      html += `<optgroup label="${TERM_LABELS[currentTerm] || ("Term " + currentTerm)}">`;
+    }
+    html += `<option value="${i}">${e.title}</option>`;
+  });
+  html += `</optgroup>`;
+  sel.innerHTML = html;
 }
 
 function loadExercise() {
@@ -759,8 +842,21 @@ _captured_output = _stdout_capture.getvalue()
 
 async function runOutputInputModeTests(ex, code, resultsEl, statusEl) {
   let passed = 0;
+  let total = 0;
   let html = "";
+
+  if (ex.requireComment) {
+    total++;
+    const hasComment = code.split("\n").some(line => line.trim().startsWith("#"));
+    if (hasComment) passed++;
+    html += `<div class="result-item ${hasComment ? "result-pass" : "result-fail"}">
+      <span>Includes a comment starting with #</span>
+      <span>${hasComment ? "Found a comment" : "No comment found — add a line starting with #"}</span>
+    </div>`;
+  }
+
   for (const t of ex.tests) {
+    total++;
     let ok, detail;
     try {
       const { output, error } = await runStudentCodeCaptureWithInputs(code, t.inputs);
@@ -781,10 +877,10 @@ async function runOutputInputModeTests(ex, code, resultsEl, statusEl) {
       <span>${detail}</span>
     </div>`;
   }
-  html += `<div class="score-banner">Score: ${passed} / ${ex.tests.length}</div>`;
+  html += `<div class="score-banner">Score: ${passed} / ${total}</div>`;
   resultsEl.innerHTML = html;
   statusEl.textContent = "";
-  lastScore = { passed, total: ex.tests.length, exerciseId: ex.id, exerciseTitle: ex.title };
+  lastScore = { passed, total, exerciseId: ex.id, exerciseTitle: ex.title };
   document.getElementById("submitBtn").disabled = false;
 }
 
