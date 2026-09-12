@@ -538,12 +538,13 @@ function renderLearnerNameField() {
   if (!roster.length) {
     nameContainer.innerHTML = `
       <label for="learnerName">Your name</label>
-      <input type="text" id="learnerName" placeholder="First and last name">
+      <input type="text" id="learnerName" placeholder="First and last name" onchange="refreshLockingForLearner(this.value.trim())">
     `;
     classContainer.innerHTML = `
       <label for="learnerClass">Class</label>
       <input type="text" id="learnerClass" placeholder="e.g. 4A">
     `;
+    refreshLockingForLearner("");
     return;
   }
   const options = roster
@@ -562,6 +563,7 @@ function renderLearnerNameField() {
     <label for="learnerClass">Class</label>
     <input type="text" id="learnerClass" placeholder="e.g. 4A">
   `;
+  refreshLockingForLearner("");
 }
 
 function onLearnerSelectChange() {
@@ -571,23 +573,59 @@ function onLearnerSelectChange() {
   if (sel.value === "__other__") {
     nameContainer.innerHTML = `
       <label for="learnerName">Your name</label>
-      <input type="text" id="learnerName" placeholder="First and last name">
+      <input type="text" id="learnerName" placeholder="First and last name" onchange="refreshLockingForLearner(this.value.trim())">
       <div class="note"><a href="#" onclick="renderLearnerNameField(); return false;">Back to the list</a></div>
     `;
+    refreshLockingForLearner("");
     return;
   }
   const hidden = document.getElementById("learnerName");
   if (sel.value === "") {
     hidden.value = "";
     classInput.value = "";
+    refreshLockingForLearner("");
     return;
   }
   const r = roster[Number(sel.value)];
   hidden.value = r.name;
   classInput.value = r.className || "";
+  refreshLockingForLearner(r.name);
 }
 
+let completedExerciseIds = new Set();
 
+async function refreshLockingForLearner(name) {
+  completedExerciseIds = new Set();
+  if (name) {
+    try {
+      const state = await fetchRemoteState();
+      completedExerciseIds = new Set(
+        state.results.filter(r => r.learner === name && r.score >= r.total / 2).map(r => r.exerciseId)
+      );
+    } catch (e) { /* if offline, fall back to no progress known */ }
+  }
+  updateExerciseLocking();
+}
+
+function updateExerciseLocking() {
+  const sel = document.getElementById("exerciseSelect");
+  let firstUnlockedIndex = 0;
+  for (let i = 0; i < EXERCISES.length; i++) {
+    const opt = sel.options[i];
+    const locked = i > 0 && !completedExerciseIds.has(EXERCISES[i - 1].id);
+    opt.disabled = locked;
+    opt.textContent = locked ? `🔒 ${EXERCISES[i].title}` : EXERCISES[i].title;
+    if (!locked && i > firstUnlockedIndex) firstUnlockedIndex = i;
+  }
+  // Jump to the next exercise the learner hasn't finished yet
+  let target = 0;
+  for (let i = 0; i < EXERCISES.length; i++) {
+    if (!sel.options[i].disabled && !completedExerciseIds.has(EXERCISES[i].id)) { target = i; break; }
+    if (i === EXERCISES.length - 1) target = i;
+  }
+  sel.value = String(target);
+  loadExercise();
+}
 
 function populateExerciseSelect() {
   const sel = document.getElementById("exerciseSelect");
@@ -851,8 +889,9 @@ async function submitResult() {
     );
     state.results.push(newResult);
     await saveRemoteState(state);
-    statusEl.textContent = "Saved! Your teacher can now see this score.";
     document.getElementById("submitBtn").disabled = true;
+    await refreshLockingForLearner(name);
+    statusEl.textContent = "Saved! Your teacher can now see this score.";
   } catch (e) {
     statusEl.textContent = "Could not save your score — check your internet connection and try again.";
   }
