@@ -322,6 +322,28 @@
       </div>
       <div class="note">Comments are saved per learner so you can come back and edit them later.</div>
     </div>
+
+    <div class="card no-print">
+      <label>Exercise overview (memo)</label>
+      <div class="note" style="margin-bottom:10px;">Every exercise with its task, starter code, and a working sample solution — a quick way to review the whole course without going through the learner flow.</div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="toggleMemo()" id="memoToggleBtn">Show memo</button>
+        <button class="btn btn-ghost" onclick="window.print()">Print memo</button>
+      </div>
+      <div id="memoWrap" style="display:none; margin-top:14px;"></div>
+    </div>
+
+    <div class="card no-print">
+      <label>Manage exercises (advanced)</label>
+      <div class="note" style="margin-bottom:10px;">Edit exercise wording, starter code, or expected answers yourself — no file upload needed. This is raw JSON, so it's easy to break if the structure isn't valid. Load it, make small edits, and save.</div>
+      <textarea class="note-field" id="exercisesJsonField" style="min-height:220px; font-family: Consolas, Monaco, monospace; font-size:12px;" placeholder="Click 'Load current exercises' to begin"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="loadExercisesIntoEditor()">Load current exercises</button>
+        <button class="btn btn-primary" onclick="saveExercisesFromEditor()">Save exercises</button>
+        <button class="btn btn-ghost" onclick="resetExercisesToDefault()">Reset to original set</button>
+      </div>
+      <div class="note" id="exercisesEditorStatus"></div>
+    </div>
   </div>
 
 </div>
@@ -331,9 +353,10 @@
 </div>
 
 <script>
-const EXERCISES = [
+const DEFAULT_EXERCISES = [
   {
     id: "print_basic",
+    solution: "print(\"Hello, World!\")\n",
     mode: "output",
     term: 1,
     title: "1. The print() function",
@@ -345,6 +368,7 @@ const EXERCISES = [
   },
   {
     id: "comments",
+    solution: "# This prints my favourite phrase\nprint(\"I love Python!\")\n",
     mode: "output",
     term: 1,
     title: "2. Comments with #",
@@ -357,6 +381,7 @@ const EXERCISES = [
   },
   {
     id: "multiline",
+    solution: "print(\"\"\"\nCoding Club\nGrade 4\nRhenish Primary\n\"\"\")\n",
     mode: "output",
     term: 1,
     title: "3. Multi-line strings",
@@ -368,6 +393,7 @@ const EXERCISES = [
   },
   {
     id: "newline_escape",
+    solution: "print(\"Coding & Robotics\\nRhenish Primary\")\n",
     mode: "output",
     term: 1,
     title: "4. The \\n newline character",
@@ -379,6 +405,7 @@ const EXERCISES = [
   },
   {
     id: "variables",
+    solution: "age = 12\ngrade = 5\nprint(f\"I am {age} years old and in grade {grade}\")\n",
     mode: "output",
     term: 1,
     title: "5. Variables",
@@ -390,6 +417,7 @@ const EXERCISES = [
   },
   {
     id: "concatenation",
+    solution: "name = \"Coding Club\"\nyear = 2026\nprint(\"Welcome to \" + name + \" in \" + str(year))\n",
     mode: "output",
     term: 1,
     title: "6. Combining strings with +",
@@ -401,6 +429,7 @@ const EXERCISES = [
   },
   {
     id: "input_greet",
+    solution: "name = input(\"What is your name? \")\nprint(f\"Hello, {name}! Welcome to Python.\")\n",
     mode: "output_input",
     term: 1,
     title: "7. Getting input from the user",
@@ -414,6 +443,7 @@ const EXERCISES = [
   },
   {
     id: "debug_print",
+    solution: "print(\"Hello, World!\")\n",
     mode: "output",
     term: 1,
     title: "8. Debug it: fix the print statement",
@@ -425,6 +455,7 @@ const EXERCISES = [
   },
   {
     id: "debug_comment",
+    solution: "name = \"Coding Club\"\nprint(f\"Welcome to {name}!\")\n",
     mode: "output",
     term: 1,
     title: "9. Debug it: find the missing output",
@@ -436,6 +467,7 @@ const EXERCISES = [
   },
   {
     id: "debug_variable",
+    solution: "age = 12\ngrade = 5\nprint(f\"I am {age} years old and in grade {grade}\")\n",
     mode: "output",
     term: 1,
     title: "10. Debug it: fix the variable name",
@@ -447,6 +479,7 @@ const EXERCISES = [
   },
   {
     id: "term1_assessment",
+    solution: "grade = 5\n\n# This program greets the learner by name and welcomes them to the club\nname = input(\"What is your name? \")\nprint(f\"Hello, {name}! Welcome to Grade {grade} Coding Club.\")\n",
     mode: "output_input",
     term: 1,
     requireComment: true,
@@ -461,6 +494,7 @@ const EXERCISES = [
   },
   {
     id: "math",
+    solution: "bags = 3\nsweets_per_bag = 15\nextra = 2\nprint(bags * sweets_per_bag + extra)\n",
     mode: "output",
     term: 2,
     title: "12. Math operators",
@@ -472,6 +506,7 @@ const EXERCISES = [
   },
   {
     id: "ifelse",
+    solution: "num = -4\nif num < 0:\n    print(\"Negative\")\nelse:\n    print(\"Positive or zero\")\n",
     mode: "output",
     term: 2,
     title: "13. If statements",
@@ -483,6 +518,7 @@ const EXERCISES = [
   },
   {
     id: "greet",
+    solution: "def greet(name):\n    return \"Hello, \" + name + \"!\"\n",
     mode: "function",
     term: 4,
     title: "14. Write a function: greet a friend",
@@ -497,6 +533,7 @@ const EXERCISES = [
   },
   {
     id: "add",
+    solution: "def add_numbers(a, b):\n    return a + b\n",
     mode: "function",
     term: 4,
     title: "15. Write a function: add two numbers",
@@ -511,6 +548,7 @@ const EXERCISES = [
   },
   {
     id: "even",
+    solution: "def is_even(n):\n    return n % 2 == 0\n",
     mode: "function",
     term: 4,
     title: "16. Write a function: is it even?",
@@ -525,6 +563,7 @@ const EXERCISES = [
   },
   {
     id: "sumlist",
+    solution: "def sum_list(numbers):\n    total = 0\n    for n in numbers:\n        total += n\n    return total\n",
     mode: "function",
     term: 4,
     title: "17. Write a function: add up a list",
@@ -539,6 +578,7 @@ const EXERCISES = [
   },
   {
     id: "vowels",
+    solution: "def count_vowels(word):\n    count = 0\n    for letter in word:\n        if letter in \"aeiou\":\n            count += 1\n    return count\n",
     mode: "function",
     term: 4,
     title: "18. Write a function: count the vowels",
@@ -554,6 +594,7 @@ const EXERCISES = [
 ];
 
 const TERM_LABELS = { 1: "Term 1", 2: "Term 2", 3: "Term 3", 4: "Term 4" };
+let EXERCISES = DEFAULT_EXERCISES;
 
 // ── Cloud storage setup ──────────────────────────────────────────
 // Sign up free at https://jsonbin.io, create one bin (starting content: {})
@@ -571,7 +612,8 @@ async function fetchRemoteState() {
   return {
     roster: Array.isArray(data.roster) ? data.roster : [],
     results: Array.isArray(data.results) ? data.results : [],
-    notes: data.notes && typeof data.notes === "object" ? data.notes : {}
+    notes: data.notes && typeof data.notes === "object" ? data.notes : {},
+    exercises: Array.isArray(data.exercises) && data.exercises.length ? data.exercises : null
   };
 }
 
@@ -1219,14 +1261,15 @@ function renderTeacherTable() {
 }
 
 async function boot() {
-  populateExerciseSelect();
-  loadExercise();
   try {
     const state = await fetchRemoteState();
     roster = state.roster;
+    if (state.exercises) EXERCISES = state.exercises;
   } catch (e) {
     roster = [];
   }
+  populateExerciseSelect();
+  loadExercise();
   renderLearnerNameField();
   const rosterField = document.getElementById("rosterField");
   if (rosterField) rosterField.value = rosterToText(roster);
@@ -1238,6 +1281,96 @@ async function boot() {
     document.getElementById("status").textContent = "";
   } catch (e) {
     document.getElementById("status").textContent = "Could not load the Python engine. Check your internet connection and reload the page.";
+  }
+}
+
+let memoVisible = false;
+
+function toggleMemo() {
+  memoVisible = !memoVisible;
+  const wrap = document.getElementById("memoWrap");
+  const btn = document.getElementById("memoToggleBtn");
+  if (memoVisible) {
+    renderMemo();
+    wrap.style.display = "block";
+    btn.textContent = "Hide memo";
+  } else {
+    wrap.style.display = "none";
+    btn.textContent = "Show memo";
+  }
+}
+
+function renderMemo() {
+  const wrap = document.getElementById("memoWrap");
+  let html = "";
+  let currentTerm = null;
+  EXERCISES.forEach(ex => {
+    if (ex.term !== currentTerm) {
+      currentTerm = ex.term;
+      html += `<div class="report-section-title" style="margin-top:${html ? "20px" : "0"};">${escapeHtml(TERM_LABELS[currentTerm] || ("Term " + currentTerm))}</div>`;
+    }
+    html += `<div style="border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:12px;">
+      <div style="font-weight:700; color:var(--navy); margin-bottom:6px;">${escapeHtml(ex.title)}</div>
+      <div style="font-size:13px; margin-bottom:10px; color:#444;">${ex.desc}</div>
+      <div class="console-label">Starter code</div>
+      <pre class="console-output" style="margin-bottom:10px;">${escapeHtml(ex.starter)}</pre>
+      <div class="console-label">Sample solution</div>
+      <pre class="console-output">${escapeHtml(ex.solution || "(no sample solution recorded)")}</pre>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+function loadExercisesIntoEditor() {
+  document.getElementById("exercisesJsonField").value = JSON.stringify(EXERCISES, null, 2);
+  document.getElementById("exercisesEditorStatus").textContent = `Loaded ${EXERCISES.length} exercises. Edit, then click Save.`;
+}
+
+async function saveExercisesFromEditor() {
+  const statusEl = document.getElementById("exercisesEditorStatus");
+  const text = document.getElementById("exercisesJsonField").value;
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    statusEl.textContent = "That's not valid JSON — nothing was saved. Check for a missing comma or bracket.";
+    return;
+  }
+  if (!Array.isArray(parsed) || !parsed.length) {
+    statusEl.textContent = "Exercises must be a non-empty list — nothing was saved.";
+    return;
+  }
+  const missingFields = parsed.find(e => !e.id || !e.mode || !e.term || !e.title);
+  if (missingFields) {
+    statusEl.textContent = "Every exercise needs at least an id, mode, term, and title — nothing was saved.";
+    return;
+  }
+  statusEl.textContent = "Saving…";
+  try {
+    const state = await fetchRemoteState();
+    state.exercises = parsed;
+    await saveRemoteState(state);
+    EXERCISES = parsed;
+    populateExerciseSelect();
+    statusEl.textContent = `Saved! ${parsed.length} exercises are now live for every learner.`;
+  } catch (e) {
+    statusEl.textContent = "Could not save — check your internet connection and try again.";
+  }
+}
+
+async function resetExercisesToDefault() {
+  const statusEl = document.getElementById("exercisesEditorStatus");
+  statusEl.textContent = "Resetting…";
+  try {
+    const state = await fetchRemoteState();
+    state.exercises = null;
+    await saveRemoteState(state);
+    EXERCISES = DEFAULT_EXERCISES;
+    populateExerciseSelect();
+    document.getElementById("exercisesJsonField").value = "";
+    statusEl.textContent = "Reset to the original exercise set.";
+  } catch (e) {
+    statusEl.textContent = "Could not reset — check your internet connection and try again.";
   }
 }
 
