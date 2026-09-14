@@ -317,6 +317,9 @@
       <label for="focusField" style="margin-top:10px;">Focus area for next term</label>
       <textarea class="note-field" id="focusField" placeholder="e.g. Practise working with lists."></textarea>
       <div class="btn-row">
+        <button class="btn btn-ghost" onclick="suggestComment()">Suggest comment based on results</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px;">
         <button class="btn btn-ghost" onclick="buildReport()">Preview report</button>
         <button class="btn btn-primary" onclick="printReport()">Print report</button>
       </div>
@@ -334,15 +337,15 @@
     </div>
 
     <div class="card no-print">
-      <label>Manage exercises (advanced)</label>
-      <div class="note" style="margin-bottom:10px;">Edit exercise wording, starter code, or expected answers yourself — no file upload needed. This is raw JSON, so it's easy to break if the structure isn't valid. Load it, make small edits, and save.</div>
-      <textarea class="note-field" id="exercisesJsonField" style="min-height:220px; font-family: Consolas, Monaco, monospace; font-size:12px;" placeholder="Click 'Load current exercises' to begin"></textarea>
+      <label>Manage exercises</label>
+      <div class="note" style="margin-bottom:10px;">Add, edit, reorder, or remove exercises here — no code required for most changes.</div>
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="loadExercisesIntoEditor()">Load current exercises</button>
-        <button class="btn btn-primary" onclick="saveExercisesFromEditor()">Save exercises</button>
+        <button class="btn btn-primary" onclick="openExerciseForm()">+ Add new exercise</button>
         <button class="btn btn-ghost" onclick="resetExercisesToDefault()">Reset to original set</button>
       </div>
-      <div class="note" id="exercisesEditorStatus"></div>
+      <div id="exerciseListWrap" style="margin-top:14px;"></div>
+      <div id="exerciseFormWrap" style="display:none; margin-top:16px; border-top:1px solid var(--border); padding-top:16px;"></div>
+      <div class="note" id="exerciseManagerStatus"></div>
     </div>
   </div>
 
@@ -517,11 +520,73 @@ const DEFAULT_EXERCISES = [
     ]
   },
   {
+    id: "term2_assessment",
+    solution: "bags = 4\nsweets_per_bag = 15\nextra = 3\n\n# This program works out if there are enough sweets for the party\ntotal = bags * sweets_per_bag + extra\nif total >= 50:\n    print(\"Enough for the party\")\nelse:\n    print(\"Need more sweets\")\n",
+    mode: "assessment",
+    term: 2,
+    title: "14. End of Term 2 Assessment",
+    starter: "bags = 4\nsweets_per_bag = 15\nextra = 3\n\n# add a comment here explaining what this program does\n\n\n# calculate the total sweets and store it in a variable called total\n\n\n# print \"Enough for the party\" if total is 50 or more, otherwise print \"Need more sweets\"\n",
+    desc: "This assessment brings together math operators and if statements. Using the variables already given:<br><br>1. Add a comment explaining what your program does<br>2. Calculate the total sweets (4 bags of 15 sweets each, plus 3 extra) and store it in a variable called <code>total</code><br>3. Print exactly <strong>Enough for the party</strong> if the total is 50 or more, otherwise print exactly <strong>Need more sweets</strong>",
+    checks: [
+      { type: "comment" },
+      { type: "equals", expected: "Enough for the party" }
+    ]
+  },
+  {
+    id: "forloop",
+    solution: "for i in range(1, 6):\n    print(i)\n",
+    mode: "output",
+    term: 3,
+    title: "15. For loops",
+    starter: "# use a for loop below to print the numbers 1 to 5\n",
+    desc: "Use a <code>for</code> loop with <code>range()</code> to print the numbers 1 to 5, each on its own line.",
+    checks: [
+      { type: "equals", expected: "1\n2\n3\n4\n5" }
+    ]
+  },
+  {
+    id: "lists_basic",
+    solution: "foods = [\"pizza\", \"pasta\", \"salad\"]\nprint(foods[1])\n",
+    mode: "output",
+    term: 3,
+    title: "16. Lists",
+    starter: "foods = [\"pizza\", \"pasta\", \"salad\"]\n\n# print the second item in the list\n",
+    desc: "Lists store many values in one variable. Using the list already given, print just the second item: <strong>pasta</strong> (remember, list positions start counting from 0, so the second item is at position 1).",
+    checks: [
+      { type: "equals", expected: "pasta" }
+    ]
+  },
+  {
+    id: "debug_loop",
+    solution: "for i in range(1, 6):\n    print(i)\n",
+    mode: "output",
+    term: 3,
+    title: "17. Debug it: fix the loop",
+    starter: "for i in range(1, 5):\n    print(i)\n",
+    desc: "This loop should print the numbers 1 to 5, but it's missing one. Find the mistake and fix it so it prints exactly:<br>1<br>2<br>3<br>4<br>5",
+    checks: [
+      { type: "equals", expected: "1\n2\n3\n4\n5" }
+    ]
+  },
+  {
+    id: "term3_assessment",
+    solution: "numbers = [3, 6, 9]\n\n# This program prints each number in the list doubled\nfor n in numbers:\n    print(n * 2)\n",
+    mode: "assessment",
+    term: 3,
+    title: "18. End of Term 3 Assessment",
+    starter: "numbers = [3, 6, 9]\n\n# add a comment here explaining what this program does\n\n\n# use a for loop to print each number in the list, doubled, one per line\n",
+    desc: "This assessment brings together loops and lists. Using the list already given:<br><br>1. Add a comment explaining what your program does<br>2. Use a <code>for</code> loop to print each number in the list, doubled, one per line. You should get exactly:<br>6<br>12<br>18",
+    checks: [
+      { type: "comment" },
+      { type: "equals", expected: "6\n12\n18" }
+    ]
+  },
+  {
     id: "greet",
     solution: "def greet(name):\n    return \"Hello, \" + name + \"!\"\n",
     mode: "function",
     term: 4,
-    title: "14. Write a function: greet a friend",
+    title: "19. Write a function: greet a friend",
     fn: "greet",
     starter: "def greet(name):\n    # return a greeting like \"Hello, Zoe!\"\n    return \"\"\n",
     desc: "Complete the function <code>greet(name)</code> so it returns the text \"Hello, \" followed by the name and an exclamation mark. Example: greet(\"Zoe\") should return \"Hello, Zoe!\"",
@@ -536,7 +601,7 @@ const DEFAULT_EXERCISES = [
     solution: "def add_numbers(a, b):\n    return a + b\n",
     mode: "function",
     term: 4,
-    title: "15. Write a function: add two numbers",
+    title: "20. Write a function: add two numbers",
     fn: "add_numbers",
     starter: "def add_numbers(a, b):\n    # return the sum of a and b\n    return 0\n",
     desc: "Complete <code>add_numbers(a, b)</code> so it returns the sum of the two numbers.",
@@ -551,7 +616,7 @@ const DEFAULT_EXERCISES = [
     solution: "def is_even(n):\n    return n % 2 == 0\n",
     mode: "function",
     term: 4,
-    title: "16. Write a function: is it even?",
+    title: "21. Write a function: is it even?",
     fn: "is_even",
     starter: "def is_even(n):\n    # return True if n is even, otherwise False\n    return False\n",
     desc: "Complete <code>is_even(n)</code> so it returns True when the number is even, and False when it is odd.",
@@ -566,7 +631,7 @@ const DEFAULT_EXERCISES = [
     solution: "def sum_list(numbers):\n    total = 0\n    for n in numbers:\n        total += n\n    return total\n",
     mode: "function",
     term: 4,
-    title: "17. Write a function: add up a list",
+    title: "22. Write a function: add up a list",
     fn: "sum_list",
     starter: "def sum_list(numbers):\n    # return the total of all numbers in the list\n    total = 0\n    return total\n",
     desc: "Complete <code>sum_list(numbers)</code> so it adds up every number in the list and returns the total.",
@@ -581,7 +646,7 @@ const DEFAULT_EXERCISES = [
     solution: "def count_vowels(word):\n    count = 0\n    for letter in word:\n        if letter in \"aeiou\":\n            count += 1\n    return count\n",
     mode: "function",
     term: 4,
-    title: "18. Write a function: count the vowels",
+    title: "23. Write a function: count the vowels",
     fn: "count_vowels",
     starter: "def count_vowels(word):\n    # count how many letters a, e, i, o, u are in word\n    count = 0\n    return count\n",
     desc: "Complete <code>count_vowels(word)</code> so it counts how many vowels (a, e, i, o, u — lowercase) are in the word.",
@@ -589,6 +654,21 @@ const DEFAULT_EXERCISES = [
       { args: ["banana"], expected: 3 },
       { args: ["sky"], expected: 0 },
       { args: ["orange"], expected: 3 }
+    ]
+  },
+  {
+    id: "term4_assessment",
+    solution: "def count_evens(numbers):\n    count = 0\n    for n in numbers:\n        if n % 2 == 0:\n            count += 1\n    return count\n",
+    mode: "function",
+    term: 4,
+    title: "24. End of Term 4 Assessment",
+    fn: "count_evens",
+    starter: "def count_evens(numbers):\n    # return how many numbers in the list are even\n    count = 0\n    return count\n",
+    desc: "This assessment brings together everything from writing functions this term. Complete <code>count_evens(numbers)</code> so it returns how many numbers in the given list are even.",
+    tests: [
+      { args: [[1, 2, 3, 4, 5, 6]], expected: 3 },
+      { args: [[1, 3, 5]], expected: 0 },
+      { args: [[2, 4, 6, 8]], expected: 4 }
     ]
   }
 ];
@@ -862,6 +942,53 @@ _captured_output = _stdout_capture.getvalue()
   };
 }
 
+async function runAssessmentModeTests(ex, code, resultsEl, statusEl) {
+  const { output, error } = await runStudentCodeCapture(code);
+
+  let consoleHtml = `<div class="console-block">
+    <div class="console-label">Output</div>
+    <pre class="console-output">${escapeHtml(output) || "(nothing printed)"}</pre>
+  </div>`;
+  if (error) {
+    consoleHtml += `<div class="console-block">
+      <div class="console-label">Error</div>
+      <pre class="console-error">${escapeHtml(error)}</pre>
+    </div>`;
+  }
+
+  let passed = 0;
+  let html = "";
+  for (const check of ex.checks) {
+    let ok, label, detail;
+    if (check.type === "comment") {
+      ok = code.split("\n").some(line => line.trim().startsWith("#"));
+      label = "Includes a comment starting with #";
+      detail = ok ? "Found a comment" : "No comment found — add a line starting with #";
+    } else if (error) {
+      ok = false;
+      label = "Output matches exactly";
+      detail = "Couldn't check — see the error above";
+    } else if (check.type === "contains") {
+      ok = output.includes(check.expected);
+      label = `Output includes "${escapeHtml(check.expected)}"`;
+      detail = ok ? "Found it" : "Not found";
+    } else {
+      ok = normalizeOutput(output) === normalizeOutput(check.expected);
+      label = "Output matches exactly";
+      detail = ok ? "Correct" : "Doesn't match yet";
+    }
+    if (ok) passed++;
+    html += `<div class="result-item ${ok ? "result-pass" : "result-fail"}">
+      <span>${label}</span><span>${detail}</span>
+    </div>`;
+  }
+  html += `<div class="score-banner">Score: ${passed} / ${ex.checks.length}</div>`;
+  resultsEl.innerHTML = consoleHtml + html;
+  statusEl.textContent = "";
+  lastScore = { passed, total: ex.checks.length, exerciseId: ex.id, exerciseTitle: ex.title };
+  document.getElementById("submitBtn").disabled = false;
+}
+
 async function runOutputModeTests(ex, code, resultsEl, statusEl) {
   const { output, error } = await runStudentCodeCapture(code);
 
@@ -1027,6 +1154,16 @@ async function runTests() {
     return;
   }
 
+  if (ex.mode === "assessment") {
+    try {
+      await runAssessmentModeTests(ex, code, resultsEl, statusEl);
+    } catch (e) {
+      statusEl.textContent = "There's an error in your code: " + (e.message ? e.message.split("\n").pop() : String(e));
+      resultsEl.innerHTML = "";
+    }
+    return;
+  }
+
   try {
     pyodide.runPython("import builtins");
     pyodide.globals.set("__student_code__", code);
@@ -1123,8 +1260,10 @@ async function loadTeacherData() {
     const state = await fetchRemoteState();
     teacherResults = state.results;
     roster = state.roster;
+    if (state.exercises) EXERCISES = state.exercises;
     renderTeacherTable();
     populateReportLearnerSelect();
+    renderExerciseList();
   } catch (e) {
     wrap.innerHTML = `<div class="empty-note">Could not reach cloud storage — check the Bin ID and Key are pasted in correctly.</div>`;
   }
@@ -1162,6 +1301,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const sel = document.getElementById("reportLearnerSelect");
   if (sel) sel.addEventListener("change", loadNotesForSelectedLearner);
 });
+
+function suggestComment() {
+  const name = document.getElementById("reportLearnerSelect").value;
+  if (!name) return;
+  const rows = teacherResults.filter(r => r.learner === name);
+  const byId = {};
+  rows.forEach(r => { byId[r.exerciseId] = r; });
+
+  const strong = [];
+  const weak = [];
+  const notDone = [];
+  EXERCISES.forEach(ex => {
+    const topic = stripHtmlTags(ex.title).replace(/^\d+\.\s*/, "");
+    const r = byId[ex.id];
+    if (!r) { notDone.push(topic); return; }
+    if (r.score === r.total) strong.push(topic);
+    else weak.push(topic);
+  });
+
+  const strengths = strong.length
+    ? `Confident with: ${strong.join(", ")}.`
+    : "Still building confidence — no exercises fully completed yet.";
+
+  let focus = "";
+  if (weak.length) focus += `Could use more practice with: ${weak.join(", ")}.`;
+  if (notDone.length) focus += (focus ? " " : "") + `Not yet attempted: ${notDone.join(", ")}.`;
+  if (!focus) focus = "Working confidently across every topic covered so far — ready to move ahead.";
+
+  document.getElementById("strengthsField").value = strengths;
+  document.getElementById("focusField").value = focus;
+}
 
 async function saveNotes(name, strengths, focus) {
   try {
@@ -1321,45 +1491,243 @@ function renderMemo() {
   wrap.innerHTML = html;
 }
 
-function loadExercisesIntoEditor() {
-  document.getElementById("exercisesJsonField").value = JSON.stringify(EXERCISES, null, 2);
-  document.getElementById("exercisesEditorStatus").textContent = `Loaded ${EXERCISES.length} exercises. Edit, then click Save.`;
+// ── Visual exercise manager ─────────────────────────────────────
+function isSimpleOutputExercise(ex) {
+  if (ex.mode !== "output" || !Array.isArray(ex.checks)) return false;
+  const equalsChecks = ex.checks.filter(c => c.type === "equals");
+  const commentChecks = ex.checks.filter(c => c.type === "comment");
+  const otherChecks = ex.checks.filter(c => c.type !== "equals" && c.type !== "comment");
+  return equalsChecks.length === 1 && commentChecks.length <= 1 && otherChecks.length === 0;
 }
 
-async function saveExercisesFromEditor() {
-  const statusEl = document.getElementById("exercisesEditorStatus");
-  const text = document.getElementById("exercisesJsonField").value;
-  let parsed;
-  try {
-    parsed = JSON.parse(text);
-  } catch (e) {
-    statusEl.textContent = "That's not valid JSON — nothing was saved. Check for a missing comma or bracket.";
+function stripHtmlTags(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || "";
+}
+
+function slugify(title) {
+  let base = title.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "exercise";
+  let id = base;
+  let n = 2;
+  while (EXERCISES.some(e => e.id === id)) {
+    id = `${base}_${n}`;
+    n++;
+  }
+  return id;
+}
+
+function renderExerciseList() {
+  const wrap = document.getElementById("exerciseListWrap");
+  let html = "";
+  let currentTerm = null;
+  EXERCISES.forEach((ex, i) => {
+    if (ex.term !== currentTerm) {
+      currentTerm = ex.term;
+      html += `<div class="report-section-title" style="margin-top:${html ? "16px" : "0"};">${escapeHtml(TERM_LABELS[currentTerm] || ("Term " + currentTerm))}</div>`;
+    }
+    const prevSameTerm = i > 0 && EXERCISES[i - 1].term === ex.term;
+    const nextSameTerm = i < EXERCISES.length - 1 && EXERCISES[i + 1].term === ex.term;
+    html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:6px;">
+      <span style="font-size:14px;">${escapeHtml(ex.title)}</span>
+      <span style="display:flex; gap:6px; flex-shrink:0;">
+        <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px;" onclick="moveExercise(${i}, -1)" ${prevSameTerm ? "" : "disabled"} title="Move up">↑</button>
+        <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px;" onclick="moveExercise(${i}, 1)" ${nextSameTerm ? "" : "disabled"} title="Move down">↓</button>
+        <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px;" onclick="openExerciseForm(${i})">Edit</button>
+        <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px; color:var(--danger);" onclick="deleteExercise(${i})">Delete</button>
+      </span>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+function openExerciseForm(index) {
+  const isNew = index === undefined || index === null;
+  const ex = isNew ? null : EXERCISES[index];
+  const simple = isNew || isSimpleOutputExercise(ex);
+  const formWrap = document.getElementById("exerciseFormWrap");
+
+  const termOptions = [1, 2, 3, 4].map(t =>
+    `<option value="${t}" ${ex && ex.term === t ? "selected" : ""}>${TERM_LABELS[t]}</option>`
+  ).join("");
+
+  let commentChecked = "";
+  let expectedValue = "";
+  if (ex) {
+    const commentCheck = (ex.checks || []).find(c => c.type === "comment");
+    const equalsCheck = (ex.checks || []).find(c => c.type === "equals");
+    commentChecked = commentCheck ? "checked" : "";
+    expectedValue = equalsCheck ? equalsCheck.expected : "";
+  }
+
+  let html = "";
+  if (!simple) {
+    html += `<div class="note" style="margin-bottom:10px;">This exercise uses more advanced grading (a written function, or simulated typed-in answers), so only the basics can be edited here. For changes to how it's graded, come back and ask me directly.</div>`;
+  }
+
+  html += `
+    <div class="row">
+      <div>
+        <label>Term</label>
+        <select id="formTerm">${termOptions}</select>
+      </div>
+      <div style="flex:2;">
+        <label>Title (without the number — that's added automatically)</label>
+        <input type="text" id="formTitle" value="${ex ? escapeHtml(stripHtmlTags(ex.title.replace(/^\d+\.\s*/, ""))) : ""}" placeholder="e.g. Printing your name">
+      </div>
+    </div>
+    <label style="margin-top:10px;">Task instructions (what the learner sees)</label>
+    <textarea class="note-field" id="formDesc" style="min-height:70px;" placeholder="e.g. Use print() to display your name.">${ex ? escapeHtml(stripHtmlTags(ex.desc)) : ""}</textarea>
+    <label style="margin-top:10px;">Starter code (what's already in the box when they open it)</label>
+    <textarea class="note-field" id="formStarter" style="min-height:80px; font-family: Consolas, Monaco, monospace; font-size:13px;">${ex ? escapeHtml(ex.starter) : ""}</textarea>
+  `;
+
+  if (simple) {
+    html += `
+      <label style="margin-top:10px;">Exactly what their program should print</label>
+      <textarea class="note-field" id="formExpected" style="min-height:60px; font-family: Consolas, Monaco, monospace; font-size:13px;">${escapeHtml(expectedValue)}</textarea>
+      <div class="note">Matching ignores capital letters and punctuation — only the words themselves need to be right.</div>
+      <label style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="formRequireComment" ${commentChecked} style="width:auto;">
+        Also require a comment (a line starting with #) somewhere in their code
+      </label>
+    `;
+  }
+
+  html += `
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-primary" onclick="saveExerciseForm(${isNew ? "null" : index})">Save exercise</button>
+      <button class="btn btn-ghost" onclick="closeExerciseForm()">Cancel</button>
+    </div>
+  `;
+
+  formWrap.innerHTML = html;
+  formWrap.style.display = "block";
+  formWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function closeExerciseForm() {
+  document.getElementById("exerciseFormWrap").style.display = "none";
+  document.getElementById("exerciseFormWrap").innerHTML = "";
+}
+
+async function saveExerciseForm(index) {
+  const statusEl = document.getElementById("exerciseManagerStatus");
+  const isNew = index === null;
+  const term = Number(document.getElementById("formTerm").value);
+  const titleText = document.getElementById("formTitle").value.trim();
+  const descText = document.getElementById("formDesc").value.trim();
+  const starterText = document.getElementById("formStarter").value;
+
+  if (!titleText || !descText) {
+    statusEl.textContent = "Please fill in at least a title and task instructions.";
     return;
   }
-  if (!Array.isArray(parsed) || !parsed.length) {
-    statusEl.textContent = "Exercises must be a non-empty list — nothing was saved.";
-    return;
+
+  const existing = isNew ? null : EXERCISES[index];
+  const simple = isNew || isSimpleOutputExercise(existing);
+
+  // Renumber titles within the (possibly new) term position after insertion/edit,
+  // so just build the exercise now and renumber the whole list afterward.
+  let newEx;
+  if (simple) {
+    const expectedText = document.getElementById("formExpected").value;
+    const requireComment = document.getElementById("formRequireComment").checked;
+    const checks = [];
+    if (requireComment) checks.push({ type: "comment" });
+    checks.push({ type: "equals", expected: expectedText });
+    newEx = {
+      id: isNew ? slugify(titleText) : existing.id,
+      mode: "output",
+      term,
+      title: titleText,
+      starter: starterText,
+      desc: escapeHtml(descText),
+      checks
+    };
+  } else {
+    // Advanced exercise: keep its grading logic untouched, only update basic fields
+    newEx = { ...existing, term, title: titleText, desc: escapeHtml(descText), starter: starterText };
   }
-  const missingFields = parsed.find(e => !e.id || !e.mode || !e.term || !e.title);
-  if (missingFields) {
-    statusEl.textContent = "Every exercise needs at least an id, mode, term, and title — nothing was saved.";
-    return;
+
+  if (isNew) {
+    // Insert at the end of its term block (or at the end of the list if term is new)
+    let insertAt = EXERCISES.length;
+    for (let i = EXERCISES.length - 1; i >= 0; i--) {
+      if (EXERCISES[i].term === term) { insertAt = i + 1; break; }
+    }
+    EXERCISES.splice(insertAt, 0, newEx);
+  } else {
+    EXERCISES[index] = newEx;
   }
+
+  renumberExerciseTitles();
   statusEl.textContent = "Saving…";
   try {
     const state = await fetchRemoteState();
-    state.exercises = parsed;
+    state.exercises = EXERCISES;
     await saveRemoteState(state);
-    EXERCISES = parsed;
     populateExerciseSelect();
-    statusEl.textContent = `Saved! ${parsed.length} exercises are now live for every learner.`;
+    renderExerciseList();
+    closeExerciseForm();
+    statusEl.textContent = "Saved! This is now live for every learner.";
   } catch (e) {
     statusEl.textContent = "Could not save — check your internet connection and try again.";
   }
 }
 
+async function deleteExercise(index) {
+  if (EXERCISES.length <= 1) {
+    document.getElementById("exerciseManagerStatus").textContent = "Can't delete the last remaining exercise.";
+    return;
+  }
+  if (!confirm(`Delete "${stripHtmlTags(EXERCISES[index].title)}"? This can't be undone.`)) return;
+  EXERCISES.splice(index, 1);
+  renumberExerciseTitles();
+  const statusEl = document.getElementById("exerciseManagerStatus");
+  statusEl.textContent = "Deleting…";
+  try {
+    const state = await fetchRemoteState();
+    state.exercises = EXERCISES;
+    await saveRemoteState(state);
+    populateExerciseSelect();
+    renderExerciseList();
+    statusEl.textContent = "Deleted.";
+  } catch (e) {
+    statusEl.textContent = "Could not save — check your internet connection and try again.";
+  }
+}
+
+async function moveExercise(index, direction) {
+  const target = index + direction;
+  if (target < 0 || target >= EXERCISES.length) return;
+  if (EXERCISES[target].term !== EXERCISES[index].term) return;
+  [EXERCISES[index], EXERCISES[target]] = [EXERCISES[target], EXERCISES[index]];
+  renumberExerciseTitles();
+  const statusEl = document.getElementById("exerciseManagerStatus");
+  statusEl.textContent = "Saving new order…";
+  try {
+    const state = await fetchRemoteState();
+    state.exercises = EXERCISES;
+    await saveRemoteState(state);
+    populateExerciseSelect();
+    renderExerciseList();
+    statusEl.textContent = "Order updated.";
+  } catch (e) {
+    statusEl.textContent = "Could not save — check your internet connection and try again.";
+  }
+}
+
+function renumberExerciseTitles() {
+  EXERCISES.forEach((ex, i) => {
+    const bare = stripHtmlTags(ex.title).replace(/^\d+\.\s*/, "");
+    ex.title = `${i + 1}. ${bare}`;
+  });
+}
+
 async function resetExercisesToDefault() {
-  const statusEl = document.getElementById("exercisesEditorStatus");
+  if (!confirm("Reset to the original exercise set? Any exercises you've added or edited here will be lost.")) return;
+  const statusEl = document.getElementById("exerciseManagerStatus");
   statusEl.textContent = "Resetting…";
   try {
     const state = await fetchRemoteState();
@@ -1367,7 +1735,7 @@ async function resetExercisesToDefault() {
     await saveRemoteState(state);
     EXERCISES = DEFAULT_EXERCISES;
     populateExerciseSelect();
-    document.getElementById("exercisesJsonField").value = "";
+    renderExerciseList();
     statusEl.textContent = "Reset to the original exercise set.";
   } catch (e) {
     statusEl.textContent = "Could not reset — check your internet connection and try again.";
