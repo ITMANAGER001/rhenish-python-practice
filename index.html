@@ -116,6 +116,34 @@
   }
   .result-pass { background: var(--success-bg); color: var(--success); }
   .result-fail { background: var(--danger-bg); color: var(--danger); }
+  .console-block { margin-bottom: 14px; }
+  .console-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  .console-output, .console-error {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .console-output {
+    background: var(--code-bg);
+    color: var(--code-text);
+  }
+  .console-error {
+    background: #2A1414;
+    color: #FF6B6B;
+    border: 1px solid #7A2E2E;
+  }
   .score-banner {
     font-size: 16px;
     font-weight: 700;
@@ -361,10 +389,21 @@ const EXERCISES = [
     ]
   },
   {
+    id: "concatenation",
+    mode: "output",
+    term: 1,
+    title: "6. Combining strings with +",
+    starter: "name = \"Coding Club\"\nyear = 2026\n\n# use + to join the pieces together and print the full message\n",
+    desc: "Variables can also be joined together using the <code>+</code> operator, instead of curly brackets. Using the variables already given, print exactly: <strong>Welcome to Coding Club in 2026</strong><br><br>Hint: <code>+</code> only works between strings, so you'll need to convert the number to text first using <code>str()</code>.",
+    checks: [
+      { type: "equals", expected: "Welcome to Coding Club in 2026" }
+    ]
+  },
+  {
     id: "input_greet",
     mode: "output_input",
     term: 1,
-    title: "6. Getting input from the user",
+    title: "7. Getting input from the user",
     starter: "name = input(\"What is your name? \")\n# print a welcome message using name, e.g. Hello, Zoe! Welcome to Python.\n",
     desc: "Use <code>input()</code> to ask \"What is your name?\", store the answer in a variable called <code>name</code>, then print: <strong>Hello, &lt;name&gt;! Welcome to Python.</strong> (with whatever name was typed in)",
     tests: [
@@ -377,7 +416,7 @@ const EXERCISES = [
     id: "debug_print",
     mode: "output",
     term: 1,
-    title: "7. Debug it: fix the print statement",
+    title: "8. Debug it: fix the print statement",
     starter: "print(\"Hello, World!)\n",
     desc: "This code has a mistake in it and won't run. Find it and fix it so it prints exactly: <strong>Hello, World!</strong>",
     checks: [
@@ -388,7 +427,7 @@ const EXERCISES = [
     id: "debug_comment",
     mode: "output",
     term: 1,
-    title: "8. Debug it: find the missing output",
+    title: "9. Debug it: find the missing output",
     starter: "name = \"Coding Club\"\n# print(f\"Welcome to {name}!\")\n",
     desc: "This code should print a welcome message, but nothing shows up when you run it. Find the mistake and fix it so it prints exactly: <strong>Welcome to Coding Club!</strong>",
     checks: [
@@ -399,7 +438,7 @@ const EXERCISES = [
     id: "debug_variable",
     mode: "output",
     term: 1,
-    title: "9. Debug it: fix the variable name",
+    title: "10. Debug it: fix the variable name",
     starter: "age = 12\ngrade = 5\nprint(f\"I am {age} years old and in grade {Grade}\")\n",
     desc: "There's a mistake in this code — one of the variable names doesn't match how it was created. Find it and fix it so it prints exactly: <strong>I am 12 years old and in grade 5</strong>",
     checks: [
@@ -411,7 +450,7 @@ const EXERCISES = [
     mode: "output_input",
     term: 1,
     requireComment: true,
-    title: "10. End of Term 1 Assessment",
+    title: "11. End of Term 1 Assessment",
     starter: "grade = 5\n\n# add a comment here explaining what this program does\n\n\n# ask for the learner's name below\n",
     desc: "This assessment brings together everything from this term. Using the variable <code>grade</code> already given (set to 5):<br><br>1. Add a comment above your code explaining what it does<br>2. Use <code>input()</code> to ask \"What is your name?\" and store it in a variable called <code>name</code><br>3. Print exactly: <strong>Hello, &lt;name&gt;! Welcome to Grade 5 Coding Club.</strong> (with whatever name was typed in)",
     tests: [
@@ -424,7 +463,7 @@ const EXERCISES = [
     id: "math",
     mode: "output",
     term: 2,
-    title: "11. Math operators",
+    title: "12. Math operators",
     starter: "bags = 3\nsweets_per_bag = 15\nextra = 2\n\n# calculate the total and print ONLY the number\n",
     desc: "Using the variables already given, calculate the total sweets (3 bags of 15 sweets each, plus 2 extra) and print just the number. You should get exactly: <strong>47</strong>",
     checks: [
@@ -435,7 +474,7 @@ const EXERCISES = [
     id: "ifelse",
     mode: "output",
     term: 2,
-    title: "12. If statements",
+    title: "13. If statements",
     starter: "num = -4\n\n# write an if/else below that prints \"Negative\" if num is less than 0,\n# otherwise prints \"Positive or zero\"\n",
     desc: "The variable <code>num</code> is already set to -4. Write an if/else statement that prints exactly \"Negative\" if num is less than 0, otherwise prints \"Positive or zero\".",
     checks: [
@@ -446,7 +485,7 @@ const EXERCISES = [
     id: "greet",
     mode: "function",
     term: 4,
-    title: "13. Write a function: greet a friend",
+    title: "14. Write a function: greet a friend",
     fn: "greet",
     starter: "def greet(name):\n    # return a greeting like \"Hello, Zoe!\"\n    return \"\"\n",
     desc: "Complete the function <code>greet(name)</code> so it returns the text \"Hello, \" followed by the name and an exclamation mark. Example: greet(\"Zoe\") should return \"Hello, Zoe!\"",
@@ -460,7 +499,7 @@ const EXERCISES = [
     id: "add",
     mode: "function",
     term: 4,
-    title: "14. Write a function: add two numbers",
+    title: "15. Write a function: add two numbers",
     fn: "add_numbers",
     starter: "def add_numbers(a, b):\n    # return the sum of a and b\n    return 0\n",
     desc: "Complete <code>add_numbers(a, b)</code> so it returns the sum of the two numbers.",
@@ -474,7 +513,7 @@ const EXERCISES = [
     id: "even",
     mode: "function",
     term: 4,
-    title: "15. Write a function: is it even?",
+    title: "16. Write a function: is it even?",
     fn: "is_even",
     starter: "def is_even(n):\n    # return True if n is even, otherwise False\n    return False\n",
     desc: "Complete <code>is_even(n)</code> so it returns True when the number is even, and False when it is odd.",
@@ -488,7 +527,7 @@ const EXERCISES = [
     id: "sumlist",
     mode: "function",
     term: 4,
-    title: "16. Write a function: add up a list",
+    title: "17. Write a function: add up a list",
     fn: "sum_list",
     starter: "def sum_list(numbers):\n    # return the total of all numbers in the list\n    total = 0\n    return total\n",
     desc: "Complete <code>sum_list(numbers)</code> so it adds up every number in the list and returns the total.",
@@ -502,7 +541,7 @@ const EXERCISES = [
     id: "vowels",
     mode: "function",
     term: 4,
-    title: "17. Write a function: count the vowels",
+    title: "18. Write a function: count the vowels",
     fn: "count_vowels",
     starter: "def count_vowels(word):\n    # count how many letters a, e, i, o, u are in word\n    count = 0\n    return count\n",
     desc: "Complete <code>count_vowels(word)</code> so it counts how many vowels (a, e, i, o, u — lowercase) are in the word.",
@@ -739,6 +778,9 @@ function pyEquals(a, b) {
   if (Array.isArray(a) && Array.isArray(b)) {
     return a.length === b.length && a.every((v, i) => pyEquals(v, b[i]));
   }
+  if (typeof a === "string" && typeof b === "string") {
+    return normalizeOutput(a) === normalizeOutput(b);
+  }
   return a === b;
 }
 
@@ -747,13 +789,19 @@ function escapeHtml(s) {
 }
 
 function normalizeOutput(s) {
-  return String(s).replace(/\r\n/g, "\n").replace(/[ \t]+$/gm, "").trim();
+  return String(s)
+    .replace(/\r\n/g, "\n")
+    .toLowerCase()
+    .split("\n")
+    .map(line => line.trim().replace(/[.,!?;:'"]/g, "").replace(/\s+/g, " ").trim())
+    .join("\n")
+    .trim();
 }
 
 async function runStudentCodeCapture(code) {
   pyodide.globals.set("__student_code__", code);
   pyodide.runPython(`
-import sys, io
+import sys, io, traceback
 _stdout_capture = io.StringIO()
 _old_stdout = sys.stdout
 sys.stdout = _stdout_capture
@@ -761,7 +809,7 @@ _error = None
 try:
     exec(__student_code__, {})
 except Exception as e:
-    _error = str(e)
+    _error = traceback.format_exc()
 finally:
     sys.stdout = _old_stdout
 _captured_output = _stdout_capture.getvalue()
@@ -774,11 +822,24 @@ _captured_output = _stdout_capture.getvalue()
 
 async function runOutputModeTests(ex, code, resultsEl, statusEl) {
   const { output, error } = await runStudentCodeCapture(code);
+
+  let consoleHtml = `<div class="console-block">
+    <div class="console-label">Output</div>
+    <pre class="console-output">${escapeHtml(output) || "(nothing printed)"}</pre>
+  </div>`;
+
   if (error) {
-    statusEl.textContent = "There's an error in your code: " + error;
-    resultsEl.innerHTML = "";
+    consoleHtml += `<div class="console-block">
+      <div class="console-label">Error</div>
+      <pre class="console-error">${escapeHtml(error)}</pre>
+    </div>`;
+    resultsEl.innerHTML = consoleHtml;
+    statusEl.textContent = "";
+    lastScore = null;
+    document.getElementById("submitBtn").disabled = true;
     return;
   }
+
   let passed = 0;
   let html = "";
   for (const check of ex.checks) {
@@ -794,7 +855,7 @@ async function runOutputModeTests(ex, code, resultsEl, statusEl) {
     } else {
       ok = normalizeOutput(output) === normalizeOutput(check.expected);
       label = "Output matches exactly";
-      detail = ok ? "Correct" : "Your output was:<br>" + escapeHtml(output || "(nothing printed)");
+      detail = ok ? "Correct" : "Doesn't match yet";
     }
     if (ok) passed++;
     html += `<div class="result-item ${ok ? "result-pass" : "result-fail"}">
@@ -802,7 +863,7 @@ async function runOutputModeTests(ex, code, resultsEl, statusEl) {
     </div>`;
   }
   html += `<div class="score-banner">Score: ${passed} / ${ex.checks.length}</div>`;
-  resultsEl.innerHTML = html;
+  resultsEl.innerHTML = consoleHtml + html;
   statusEl.textContent = "";
   lastScore = { passed, total: ex.checks.length, exerciseId: ex.id, exerciseTitle: ex.title };
   document.getElementById("submitBtn").disabled = false;
@@ -812,7 +873,7 @@ async function runStudentCodeCaptureWithInputs(code, inputs) {
   pyodide.globals.set("__student_code__", code);
   pyodide.globals.set("__test_inputs__", pyodide.toPy(inputs));
   pyodide.runPython(`
-import sys, io, builtins
+import sys, io, builtins, traceback
 _stdout_capture = io.StringIO()
 _old_stdout = sys.stdout
 _old_input = builtins.input
@@ -828,7 +889,7 @@ _error = None
 try:
     exec(__student_code__, {})
 except Exception as e:
-    _error = str(e)
+    _error = traceback.format_exc()
 finally:
     sys.stdout = _old_stdout
     builtins.input = _old_input
@@ -860,21 +921,31 @@ async function runOutputInputModeTests(ex, code, resultsEl, statusEl) {
     let ok, detail;
     try {
       const { output, error } = await runStudentCodeCaptureWithInputs(code, t.inputs);
+      const outputBlock = `<div class="console-block">
+        <div class="console-label">Output (typed in: "${escapeHtml(t.inputs.join(", "))}")</div>
+        <pre class="console-output">${escapeHtml(output) || "(nothing printed)"}</pre>
+      </div>`;
       if (error) {
         ok = false;
-        detail = "Error: " + escapeHtml(error);
+        detail = outputBlock + `<div class="console-block">
+          <div class="console-label">Error</div>
+          <pre class="console-error">${escapeHtml(error)}</pre>
+        </div>`;
       } else {
         ok = normalizeOutput(output).includes(normalizeOutput(t.expected));
-        detail = ok ? "Correct" : "Your output was:<br>" + escapeHtml(output || "(nothing printed)");
+        detail = ok ? "Correct" : `Expected: "${escapeHtml(t.expected)}"` + outputBlock;
       }
     } catch (e) {
       ok = false;
       detail = "Error running your code";
     }
     if (ok) passed++;
-    html += `<div class="result-item ${ok ? "result-pass" : "result-fail"}">
-      <span>Typed in: "${escapeHtml(t.inputs.join(", "))}" → expected "${escapeHtml(t.expected)}"</span>
-      <span>${detail}</span>
+    html += `<div class="result-item ${ok ? "result-pass" : "result-fail"}" style="display:block;">
+      <div style="display:flex; justify-content:space-between; margin-bottom: ${ok ? "0" : "6px"};">
+        <span>Typed in: "${escapeHtml(t.inputs.join(", "))}"</span>
+        <span>${ok ? "Correct" : "Needs work"}</span>
+      </div>
+      ${ok ? "" : detail}
     </div>`;
   }
   html += `<div class="score-banner">Score: ${passed} / ${total}</div>`;
