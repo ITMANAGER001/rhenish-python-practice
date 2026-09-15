@@ -249,6 +249,7 @@
       <button class="tab-btn active" id="tab-student" onclick="switchTab('student')">Practice</button>
       <button class="tab-btn" id="tab-consolidation" onclick="switchTab('consolidation')">Consolidation</button>
       <button class="tab-btn" id="tab-teacher" onclick="switchTab('teacher')" style="display:none;">Teacher view</button>
+      <button class="tab-btn" id="teacherLoginBtn" onclick="teacherLogin()" style="font-size:12px; padding:6px 10px;">Teacher login</button>
     </div>
   </div>
   <div class="note no-print" id="tabAccessNote" style="margin:-10px 0 14px;"></div>
@@ -401,6 +402,18 @@
         <button class="btn btn-primary" onclick="saveTabLabels()">Save tab names</button>
       </div>
       <div class="note" id="tabLabelsStatus"></div>
+
+      <label style="margin-top:16px;">Teacher PIN</label>
+      <div class="note" style="margin-bottom:10px;">Change the PIN used by the "Teacher login" button. Default is 1234 — worth changing it.</div>
+      <div class="row">
+        <div>
+          <input type="text" id="teacherPinInput" placeholder="4+ digits">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveTeacherPin()">Save PIN</button>
+      </div>
+      <div class="note" id="teacherPinStatus"></div>
     </div>
   </div>
 
@@ -844,7 +857,8 @@ async function fetchRemoteState() {
     results: Array.isArray(data.results) ? data.results : [],
     notes: data.notes && typeof data.notes === "object" ? data.notes : {},
     exercises: Array.isArray(data.exercises) && data.exercises.length ? data.exercises : null,
-    tabLabels: data.tabLabels && typeof data.tabLabels === "object" ? data.tabLabels : {}
+    tabLabels: data.tabLabels && typeof data.tabLabels === "object" ? data.tabLabels : {},
+    teacherPin: typeof data.teacherPin === "string" ? data.teacherPin : "1234"
   };
 }
 
@@ -1481,6 +1495,44 @@ async function submitResult() {
   }
 }
 
+async function saveTeacherPin() {
+  const statusEl = document.getElementById("teacherPinStatus");
+  const pin = document.getElementById("teacherPinInput").value.trim();
+  if (pin.length < 4) {
+    statusEl.textContent = "PIN should be at least 4 characters.";
+    return;
+  }
+  statusEl.textContent = "Saving…";
+  try {
+    const state = await fetchRemoteState();
+    state.teacherPin = pin;
+    await saveRemoteState(state);
+    statusEl.textContent = "PIN updated.";
+  } catch (e) {
+    statusEl.textContent = "Could not save — check your internet connection and try again.";
+  }
+}
+
+async function teacherLogin() {
+  const entered = prompt("Enter the teacher PIN:");
+  if (entered === null) return;
+  let correctPin = "1234";
+  try {
+    const state = await fetchRemoteState();
+    correctPin = state.teacherPin;
+  } catch (e) {
+    // If cloud storage is unreachable, fall back to the default PIN
+  }
+  if (entered.trim() === correctPin) {
+    document.getElementById("tab-teacher").style.display = "";
+    document.getElementById("teacherLoginBtn").style.display = "none";
+    document.getElementById("tabAccessNote").textContent = "Teacher access unlocked on this device.";
+    switchTab("teacher");
+  } else {
+    alert("Incorrect PIN.");
+  }
+}
+
 function switchTab(tab) {
   document.getElementById("view-student").style.display = tab === "student" ? "block" : "none";
   document.getElementById("view-consolidation").style.display = tab === "consolidation" ? "block" : "none";
@@ -1509,6 +1561,7 @@ async function loadTeacherData() {
     document.getElementById("tabLabelStudentInput").value = state.tabLabels.student || "Practice";
     document.getElementById("tabLabelConsolidationInput").value = state.tabLabels.consolidation || "Consolidation";
     document.getElementById("tabLabelTeacherInput").value = state.tabLabels.teacher || "Teacher view";
+    document.getElementById("teacherPinInput").value = state.teacherPin;
     renderTeacherTable();
     populateReportLearnerSelect();
     renderExerciseList();
@@ -1750,12 +1803,6 @@ function renderTeacherTable() {
 
 async function boot() {
   document.getElementById("headerLogo").src = SCHOOL_LOGO_BASE64;
-
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("admin") === "true") {
-    document.getElementById("tab-teacher").style.display = "";
-    document.getElementById("tabAccessNote").textContent = "Teacher access is active on this link — don't share this exact web address with learners.";
-  }
 
   try {
     const state = await fetchRemoteState();
