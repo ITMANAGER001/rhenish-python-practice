@@ -201,6 +201,13 @@
   .sequence-reflection { margin-top:18px; }
   .sequence-reflection label { display:block; font-size:13px; color:var(--navy); margin:12px 0 4px; font-weight:600; }
   .sequence-reflection textarea { width:100%; min-height:50px; padding:8px; border-radius:7px; border:1px solid var(--border); font-family:inherit; font-size:13px; resize:vertical; }
+  .mcq-options { display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+  .mcq-option { text-align:left; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:9px 12px; font-size:13px; color:var(--navy); cursor:pointer; font-family:inherit; }
+  .mcq-option:hover { border-color:var(--navy-light); }
+  .mcq-option.mcq-selected-correct { border-color:var(--success); background:var(--success-bg); }
+  .mcq-option.mcq-selected-wrong { border-color:var(--danger); background:var(--danger-bg); }
+  .mcq-option.mcq-selected-neutral { border-color:var(--navy-light); background:#EEF2FA; }
+  .mcq-feedback { font-size:12px; margin-top:4px; }
   #reportCard { display: none; }
   .report-page {
     background: #fff;
@@ -934,9 +941,27 @@ const GRADE4_SCRATCH_EXERCISES = [
     ],
     correctOrder:["wet","paste","brush","spit","rinse_mouth","rinse_brush","put_away"],
     reflection:[
-      "What would happen if you did Step 5 before Step 2?",
-      "Is there a step you could SKIP? Why or why not?",
-      "Can you think of another step to add to this algorithm?"
+      { q:"What would happen if you did Step 5 before Step 2?",
+        options:[
+          "You would rinse your mouth before there was any toothpaste on it — brushing wouldn't work properly",
+          "Nothing would change — the order doesn't matter",
+          "Your toothbrush would break",
+          "You would need to brush for longer than 2 minutes"
+        ], correct:0 },
+      { q:"Is there a step you could SKIP? Why or why not?",
+        options:[
+          "No — skipping any step means your teeth won't be brushed properly",
+          "Yes — you could skip putting toothpaste on the brush",
+          "Yes — you could skip rinsing your mouth",
+          "Yes — you could skip brushing altogether"
+        ], correct:0 },
+      { q:"Can you think of another step to add to this algorithm?",
+        options:[
+          "Set a timer for 2 minutes",
+          "Floss between your teeth",
+          "Look in the mirror while brushing",
+          "Put the toothbrush cap back on"
+        ], correct:null }
     ]
   },
   { id:"g4_t1_02", term:1, title:"2. Algorithm: Making a Cup of Tea", mode:"sequence",
@@ -952,9 +977,27 @@ const GRADE4_SCRATCH_EXERCISES = [
     ],
     correctOrder:["fill","teabag","boil","pour","steep","stir","done"],
     reflection:[
-      "What would happen if you poured the water before boiling the kettle (swap Steps 3 and 4)?",
-      "Is there a step you could SKIP? Why or why not?",
-      "Can you think of another step to add to this algorithm?"
+      { q:"What would happen if you poured the water before boiling the kettle (swap Steps 3 and 4)?",
+        options:[
+          "You would pour cold water onto the tea bag and it wouldn't brew properly",
+          "The tea would taste exactly the same",
+          "The kettle would overflow",
+          "The cup would break"
+        ], correct:0 },
+      { q:"Is there a step you could SKIP? Why or why not?",
+        options:[
+          "No — skipping a step, like letting it steep, would give weak, watery tea",
+          "Yes — you could skip filling the kettle",
+          "Yes — you could skip stirring",
+          "Yes — you could skip putting in the teabag"
+        ], correct:0 },
+      { q:"Can you think of another step to add to this algorithm?",
+        options:[
+          "Warm the cup first",
+          "Check the water isn't too hot before drinking",
+          "Add milk or sugar",
+          "Let the kettle cool before pouring"
+        ], correct:null }
     ]
   },
   { id:"g4_t1_03", term:1, title:"3. Sequencing", mode:"scratch", desc:"Sequencing means putting instructions in the correct order. Your Scratch challenge asks you to move a character through a simple path.", steps:["Open the Scratch activity.","Look at the starting point and target.","Use Motion blocks in the correct order.","Run your project and fix the sequence if needed."], scratchUrl:"https://scratch.mit.edu/" },
@@ -1294,11 +1337,40 @@ function renderSequenceExercise(ex) {
       </select>
     </div>
   `).join("");
-  document.getElementById("sequenceReflection").innerHTML = (ex.reflection || []).map((q, i) => `
-    <label for="seqReflect${i}">${escapeHtml(q)}</label>
-    <textarea id="seqReflect${i}"></textarea>
+  document.getElementById("sequenceReflection").innerHTML = (ex.reflection || []).map((r, i) => `
+    <label>${escapeHtml(r.q)}</label>
+    <div class="mcq-options" id="seqReflect${i}">
+      ${r.options.map((opt, j) => `<button type="button" class="mcq-option" onclick="pickReflectionOption(${i}, ${j})">${escapeHtml(opt)}</button>`).join("")}
+    </div>
+    <div class="mcq-feedback" id="seqReflectFeedback${i}"></div>
   `).join("");
   document.getElementById("sequenceStatus").textContent = "";
+}
+
+function pickReflectionOption(qIndex, optIndex) {
+  const idx = document.getElementById("exerciseSelect").value;
+  const ex = EXERCISES[idx];
+  if (!ex || ex.mode !== "sequence") return;
+  const q = ex.reflection[qIndex];
+  const container = document.getElementById("seqReflect" + qIndex);
+  const feedback = document.getElementById("seqReflectFeedback" + qIndex);
+  Array.from(container.children).forEach((btn, j) => {
+    btn.classList.remove("mcq-selected-correct", "mcq-selected-wrong", "mcq-selected-neutral");
+    if (j === optIndex) {
+      if (q.correct === null) btn.classList.add("mcq-selected-neutral");
+      else btn.classList.add(j === q.correct ? "mcq-selected-correct" : "mcq-selected-wrong");
+    }
+  });
+  if (q.correct === null) {
+    feedback.textContent = "Good thinking!";
+    feedback.style.color = "var(--navy)";
+  } else if (optIndex === q.correct) {
+    feedback.textContent = "That's right!";
+    feedback.style.color = "var(--success)";
+  } else {
+    feedback.textContent = "Not quite — have another look at the steps above.";
+    feedback.style.color = "var(--danger)";
+  }
 }
 
 function clearSequenceStatus() {
