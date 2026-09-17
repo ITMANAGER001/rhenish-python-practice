@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rhenish Primary — Python Practice</title>
+<title>Rhenish Primary — Coding &amp; Robotics</title>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
 <style>
   :root {
@@ -171,6 +171,25 @@
     font-family: inherit;
     resize: vertical;
   }
+  .scratch-panel {
+    display:none;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px;
+    margin-top:14px;
+    background:#fff;
+  }
+  .scratch-header { display:flex; gap:14px; align-items:center; margin-bottom:12px; }
+  .scratch-logo { font-weight:800; font-size:24px; letter-spacing:-1px; color:#F57C00; }
+  .scratch-panel h3 { margin:0; color:var(--navy); font-size:19px; }
+  .scratch-panel p { margin:5px 0 0; color:var(--muted); line-height:1.5; font-size:14px; }
+  .scratch-steps { background:#EEF5FF; border-radius:9px; padding:12px 14px; margin:14px 0; }
+  .scratch-steps ol { margin:6px 0 0 20px; padding:0; }
+  .scratch-steps li { margin:5px 0; font-size:14px; }
+  .scratch-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .scratch-complete { display:flex; align-items:center; gap:10px; padding:13px; border:1px solid var(--border); border-radius:9px; margin-top:16px; }
+  .scratch-complete input { width:18px; height:18px; }
+  .scratch-note { font-size:12px; color:var(--muted); margin-top:10px; }
   #reportCard { display: none; }
   .report-page {
     background: #fff;
@@ -241,8 +260,8 @@
     <div style="display:flex; align-items:center; gap:14px;">
       <img id="headerLogo" alt="Rhenish Primary School logo" style="height:56px;">
       <div>
-        <h1 id="pageHeading">Rhenish Primary — Python Practice</h1>
-        <div class="sub" id="pageSubheading">Coding &amp; Robotics · Python Basics · Grade 5</div>
+        <h1 id="pageHeading">Rhenish Primary — Coding &amp; Robotics</h1>
+        <div class="sub" id="pageSubheading">Coding &amp; Robotics · Grade 5</div>
       </div>
     </div>
     <div class="tabs no-print">
@@ -278,7 +297,28 @@
         </div>
       </div>
       <div class="exercise-desc" id="exerciseDesc"></div>
-      <label for="editor">Your code</label>
+      <div class="scratch-panel" id="scratchActivityPanel">
+        <div class="scratch-header">
+          <div class="scratch-logo">SCRATCH</div>
+          <div>
+            <h3 id="scratchTitle">Your Scratch Activity</h3>
+            <p>Scratch will open in a new tab. Complete the activity there, then return here.</p>
+          </div>
+        </div>
+        <div class="scratch-steps">
+          <strong>What to do:</strong>
+          <ol id="scratchSteps"></ol>
+        </div>
+        <div class="scratch-actions">
+          <a class="btn btn-primary" id="scratchOpenBtn" href="https://scratch.mit.edu/" target="_blank" rel="noopener">↗ Open Scratch Activity</a>
+        </div>
+        <div class="scratch-complete">
+          <input type="checkbox" id="scratchComplete" onchange="scratchCompletionChanged()">
+          <label for="scratchComplete" style="margin:0;">I have completed the Scratch activity</label>
+        </div>
+        <div class="scratch-note">Tip: Finish the Scratch project first, then tick the box so your progress can be saved in this system.</div>
+      </div>
+      <label for="editor" id="editorLabel">Your code</label>
       <textarea id="editor" spellcheck="false"></textarea>
       <div class="btn-row">
         <button class="btn btn-primary" id="runBtn" onclick="runTests()" disabled>Loading Python…</button>
@@ -846,7 +886,22 @@ const TERM_LABELS = { 1: "Term 1", 2: "Term 2", 3: "Term 3", 4: "Term 4" };
 
 // This deployment's built-in curriculum is Grade 5's. Other grades start empty
 // until exercises are added for them via Manage Exercises.
-const DEFAULT_EXERCISES_BY_GRADE = { "5": DEFAULT_EXERCISES };
+const GRADE4_SCRATCH_EXERCISES = [
+  { id:"g4_t1_01", term:1, title:"1. What is Coding?", mode:"scratch", desc:"Learn that coding means giving a computer or robot clear instructions. In Scratch, explore how blocks make a character do things.", steps:["Open the Scratch activity.","Choose a character and try Motion, Looks and Sound blocks.","Make your character move and say a short message.","Return here when you have finished."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_02", term:1, title:"2. Algorithms", mode:"scratch", desc:"An algorithm is a step-by-step set of instructions for solving a problem. You will turn a simple plan into Scratch instructions.", steps:["Open the Scratch activity.","Read the challenge before you start coding.","Plan the steps your character needs to follow.","Build the steps in Scratch and test them."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_03", term:1, title:"3. Sequencing", mode:"scratch", desc:"Sequencing means putting instructions in the correct order. Your Scratch challenge asks you to move a character through a simple path.", steps:["Open the Scratch activity.","Look at the starting point and target.","Use Motion blocks in the correct order.","Run your project and fix the sequence if needed."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_04", term:1, title:"4. Patterns", mode:"scratch", desc:"Patterns can be repeated in code. Look for a pattern in movement or actions and recreate it in Scratch.", steps:["Open the Scratch activity.","Identify the repeating pattern.","Build the pattern with Scratch blocks.","Test that the pattern repeats correctly."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_05", term:1, title:"5. Debugging", mode:"scratch", desc:"Debugging means finding and fixing a problem in a program. Your Scratch project contains a mistake for you to find.", steps:["Open the Scratch activity.","Run the project and observe what goes wrong.","Find the block or blocks causing the problem.","Fix the code and test it again."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_06", term:1, title:"6. Repetition / Loops", mode:"scratch", desc:"A loop lets us repeat instructions instead of writing the same instruction many times. Use a repeat block in Scratch.", steps:["Open the Scratch activity.","Find the repeat block in Control.","Use it to repeat a movement or action.","Test that your character completes the full task."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_07", term:1, title:"7. Conditions", mode:"scratch", desc:"A condition lets a program make a simple decision. Explore an if block and make your character react to something.", steps:["Open the Scratch activity.","Find the if block in Control.","Choose what condition should be checked.","Test what happens when the condition is true."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_08", term:1, title:"8. Coding Challenge", mode:"scratch", desc:"Bring sequencing, repetition and problem solving together in one Scratch challenge.", steps:["Open the Scratch activity.","Read the challenge carefully.","Plan your solution before building it.","Test, debug and improve your project."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_09", term:1, title:"9. What is a Robot?", mode:"scratch", desc:"Learn that robots are machines that can sense, process information and act. Use a Scratch simulation to explore the idea of a robot following instructions.", steps:["Open the Scratch activity.","Identify what the simulated robot is sensing or doing.","Give it a sequence of instructions.","Explain what makes the machine behave like a robot."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_10", term:1, title:"10. Robot Components", mode:"scratch", desc:"Explore the basic parts of a robot: power source, processor, sensors, motors/mechanics and actuators.", steps:["Open the Scratch activity.","Match each robot component to its job.","Use the simulation to see how a component affects the robot.","Complete the activity and return here."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_11", term:1, title:"11. Robot Instructions", mode:"scratch", desc:"Robots need clear, ordered instructions. Plan and test a set of instructions that gets the simulated robot to its target.", steps:["Open the Scratch activity.","Plan the route before coding.","Build the instructions in order.","Test and debug until the robot reaches the target."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_12", term:1, title:"12. Term 1 Challenge", mode:"scratch", isAssessment:true, desc:"Your Term 1 challenge brings together algorithms, sequencing, patterns, repetition, debugging and robot thinking.", steps:["Open the Scratch challenge.","Plan your algorithm first.","Build and test your Scratch solution.","Fix any errors and make sure the final project works."], scratchUrl:"https://scratch.mit.edu/" }
+];
+
+const DEFAULT_EXERCISES_BY_GRADE = { "4": GRADE4_SCRATCH_EXERCISES, "5": DEFAULT_EXERCISES };
 const DEFAULT_CONSOLIDATION_BY_GRADE = { "5": DEFAULT_CONSOLIDATION_EXERCISES };
 
 let currentGrade = "5";
@@ -1103,6 +1158,16 @@ function populateExerciseSelect() {
 function loadExercise() {
   const idx = document.getElementById("exerciseSelect").value;
   const ex = EXERCISES[idx];
+  const scratchPanel = document.getElementById("scratchActivityPanel");
+  const editor = document.getElementById("editor");
+  const editorLabel = document.getElementById("editorLabel");
+  const runBtn = document.getElementById("runBtn");
+  const resetBtn = document.querySelector('#view-student .btn-row button.btn-ghost');
+  if (scratchPanel) scratchPanel.style.display = ex && ex.mode === "scratch" ? "block" : "none";
+  if (editorLabel) editorLabel.style.display = ex && ex.mode === "scratch" ? "none" : "block";
+  if (editor) editor.style.display = ex && ex.mode === "scratch" ? "none" : "block";
+  if (runBtn) runBtn.style.display = ex && ex.mode === "scratch" ? "none" : "inline-block";
+  if (resetBtn) resetBtn.style.display = ex && ex.mode === "scratch" ? "none" : "inline-block";
   if (!ex) {
     document.getElementById("exerciseDesc").innerHTML = `Grade ${currentGrade} doesn't have any exercises yet. Use "Manage exercises" in Teacher view to add some.`;
     document.getElementById("editor").value = "";
@@ -1115,12 +1180,30 @@ function loadExercise() {
   }
   document.getElementById("runBtn").disabled = !pyodide;
   document.getElementById("exerciseDesc").innerHTML = ex.desc;
+  if (ex.mode === "scratch") {
+    document.getElementById("scratchTitle").textContent = ex.title.replace(/^\d+\.\s*/, "");
+    document.getElementById("scratchSteps").innerHTML = (ex.steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join("");
+    document.getElementById("scratchOpenBtn").href = ex.scratchUrl || "https://scratch.mit.edu/";
+    document.getElementById("scratchComplete").checked = false;
+  }
   document.getElementById("editor").value = ex.starter;
   document.getElementById("results").innerHTML = "";
   document.getElementById("status").textContent = "";
   document.getElementById("submitBtn").disabled = true;
   document.getElementById("submitBtn").textContent = ex.isAssessment ? "Save my mark" : "Save my progress";
   lastScore = null;
+}
+
+function scratchCompletionChanged() {
+  const idx = document.getElementById("exerciseSelect").value;
+  const ex = EXERCISES[idx];
+  if (!ex || ex.mode !== "scratch") return;
+  const done = document.getElementById("scratchComplete").checked;
+  const submit = document.getElementById("submitBtn");
+  submit.disabled = !done;
+  lastScore = done ? { passed: 1, total: 1, exerciseId: ex.id, exerciseTitle: ex.title } : null;
+  document.getElementById("status").textContent = done ? "Great! Your Scratch activity is marked complete. Click Save my progress." : "";
+  document.getElementById("results").innerHTML = done ? '<div class="result-item result-pass">Scratch activity completed ✓</div><div class="score-banner">Progress: 1 / 1</div>' : "";
 }
 
 function resetCode() {
