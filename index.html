@@ -299,6 +299,10 @@
   <div class="note no-print" id="tabAccessNote" style="margin:-10px 0 14px;"></div>
 
   <div id="view-student">
+    <div class="note" id="previewBanner" style="display:none; background:#FFF3E0; border:1px solid #F57C00; border-radius:8px; padding:10px 14px; color:#8A4B00; margin-bottom:12px;">
+      🧪 Teacher preview — you're viewing this as a learner would. Nothing you do here is saved.
+      <button class="btn btn-ghost" style="margin-left:10px; padding:4px 10px;" type="button" onclick="exitPreview()">Exit preview</button>
+    </div>
     <div class="card">
       <div class="row">
         <div id="learnerNameContainer">
@@ -343,6 +347,16 @@
         </div>
         <div class="note" id="sequenceStatus"></div>
         <div class="sequence-reflection" id="sequenceReflection"></div>
+      </div>
+      <div class="sequence-panel" id="kwlsPanel" style="display:none;">
+        <div id="kwlsGrid" class="sequence-reflection"></div>
+      </div>
+      <div class="sequence-panel" id="quizPanel" style="display:none;">
+        <div id="quizQuestions" class="sequence-reflection"></div>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="btn btn-primary" type="button" onclick="checkQuizAnswers()">Check my answers</button>
+        </div>
+        <div class="note" id="quizStatus"></div>
       </div>
       <label for="editor" id="editorLabel">Your code</label>
       <textarea id="editor" spellcheck="false"></textarea>
@@ -1000,16 +1014,50 @@ const GRADE4_SCRATCH_EXERCISES = [
         ], correct:null }
     ]
   },
-  { id:"g4_t1_03", term:1, title:"3. Sequencing", mode:"scratch", desc:"Sequencing means putting instructions in the correct order. Your Scratch challenge asks you to move a character through a simple path.", steps:["Open the Scratch activity.","Look at the starting point and target.","Use Motion blocks in the correct order.","Run your project and fix the sequence if needed."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_04", term:1, title:"4. Patterns", mode:"scratch", desc:"Patterns can be repeated in code. Look for a pattern in movement or actions and recreate it in Scratch.", steps:["Open the Scratch activity.","Identify the repeating pattern.","Build the pattern with Scratch blocks.","Test that the pattern repeats correctly."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_05", term:1, title:"5. Debugging", mode:"scratch", desc:"Debugging means finding and fixing a problem in a program. Your Scratch project contains a mistake for you to find.", steps:["Open the Scratch activity.","Run the project and observe what goes wrong.","Find the block or blocks causing the problem.","Fix the code and test it again."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_06", term:1, title:"6. Repetition / Loops", mode:"scratch", desc:"A loop lets us repeat instructions instead of writing the same instruction many times. Use a repeat block in Scratch.", steps:["Open the Scratch activity.","Find the repeat block in Control.","Use it to repeat a movement or action.","Test that your character completes the full task."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_07", term:1, title:"7. Conditions", mode:"scratch", desc:"A condition lets a program make a simple decision. Explore an if block and make your character react to something.", steps:["Open the Scratch activity.","Find the if block in Control.","Choose what condition should be checked.","Test what happens when the condition is true."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_08", term:1, title:"8. Coding Challenge", mode:"scratch", desc:"Bring sequencing, repetition and problem solving together in one Scratch challenge.", steps:["Open the Scratch activity.","Read the challenge carefully.","Plan your solution before building it.","Test, debug and improve your project."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_09", term:1, title:"9. What is a Robot?", mode:"scratch", desc:"Learn that robots are machines that can sense, process information and act. Use a Scratch simulation to explore the idea of a robot following instructions.", steps:["Open the Scratch activity.","Identify what the simulated robot is sensing or doing.","Give it a sequence of instructions.","Explain what makes the machine behave like a robot."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_10", term:1, title:"10. Robot Components", mode:"scratch", desc:"Explore the basic parts of a robot: power source, processor, sensors, motors/mechanics and actuators.", steps:["Open the Scratch activity.","Match each robot component to its job.","Use the simulation to see how a component affects the robot.","Complete the activity and return here."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_11", term:1, title:"11. Robot Instructions", mode:"scratch", desc:"Robots need clear, ordered instructions. Plan and test a set of instructions that gets the simulated robot to its target.", steps:["Open the Scratch activity.","Plan the route before coding.","Build the instructions in order.","Test and debug until the robot reaches the target."], scratchUrl:"https://scratch.mit.edu/" },
-  { id:"g4_t1_12", term:1, title:"12. Term 1 Challenge", mode:"scratch", isAssessment:true, desc:"Your Term 1 challenge brings together algorithms, sequencing, patterns, repetition, debugging and robot thinking.", steps:["Open the Scratch challenge.","Plan your algorithm first.","Build and test your Scratch solution.","Fix any errors and make sure the final project works."], scratchUrl:"https://scratch.mit.edu/" }
+  { id:"g4_t1_03", term:1, title:"3. KWLS Reflection: Events", mode:"kwls",
+    desc:"Before we start, think about what you already know about coding — and what you want to learn today about Events in Scratch. Come back to the L and S boxes at the end of the lesson.",
+    prompts:[
+      { label:"K — What do I already know?" },
+      { label:"W — What do I want to learn today?" },
+      { label:"L — What have I learned? (fill in after the lesson)" },
+      { label:"S — What do I still want to know?" }
+    ]
+  },
+  { id:"g4_t1_04", term:1, title:"4. Build the 4-Direction Sprite Controller", mode:"scratch",
+    desc:"An event tells Scratch WHEN to start a script. Today you'll use event blocks to make your sprite move UP, DOWN, LEFT and RIGHT using the arrow keys.",
+    steps:[
+      "Open Scratch and choose your sprite (or keep the default cat).",
+      "Find the Events category (yellow, hat-shaped blocks) in the Blocks Palette.",
+      "Drag 'when UP arrow key pressed' onto the Code Area.",
+      "Attach 'move 10 steps' then 'point in direction 0' below it — UP faces direction 0.",
+      "Repeat for DOWN: 'when DOWN arrow key pressed' + 'move 10 steps' + 'point in direction 180'.",
+      "RIGHT: 'when RIGHT arrow key pressed' + 'move 10 steps' + 'point in direction 90'.",
+      "LEFT: 'when LEFT arrow key pressed' + 'move 10 steps' + 'point in direction -90'.",
+      "Click the green flag, then test each arrow key!",
+      "Debug: does the sprite go the correct direction? Fix it if not.",
+      "Save your project as: Grade4_Wk3_YourName"
+    ],
+    scratchUrl:"https://scratch.mit.edu/"
+  },
+  { id:"g4_t1_05", term:1, title:"5. Robots and Your Digital Footprint", mode:"quiz",
+    desc:"A quick check on Virtual vs Physical robots, your digital footprint, and Input-Processing-Output — all from today's lesson.",
+    questions:[
+      { q:"Your Scratch sprite that moves with arrow keys is a...", options:["Virtual robot","Physical robot","Not a robot"], correct:0 },
+      { q:"A factory robot arm that builds cars is a...", options:["Virtual robot","Physical robot","Not a robot"], correct:1 },
+      { q:"A traffic light that changes colours is a...", options:["Virtual robot","Physical robot","Not a robot"], correct:2 },
+      { q:"Which of these is part of your digital footprint when you use Scratch?", options:["Your Scratch username and shared projects","Your home address","Your bank card number","Your phone's serial number"], correct:0 },
+      { q:"In your arrow-key project, pressing the UP key is the...", options:["Input","Processing","Output"], correct:0 }
+    ]
+  },
+  { id:"g4_t1_06", term:1, title:"6. Patterns", mode:"scratch", desc:"Patterns can be repeated in code. Look for a pattern in movement or actions and recreate it in Scratch.", steps:["Open the Scratch activity.","Identify the repeating pattern.","Build the pattern with Scratch blocks.","Test that the pattern repeats correctly."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_07", term:1, title:"7. Debugging", mode:"scratch", desc:"Debugging means finding and fixing a problem in a program. Your Scratch project contains a mistake for you to find.", steps:["Open the Scratch activity.","Run the project and observe what goes wrong.","Find the block or blocks causing the problem.","Fix the code and test it again."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_08", term:1, title:"8. Repetition / Loops", mode:"scratch", desc:"A loop lets us repeat instructions instead of writing the same instruction many times. Use a repeat block in Scratch.", steps:["Open the Scratch activity.","Find the repeat block in Control.","Use it to repeat a movement or action.","Test that your character completes the full task."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_09", term:1, title:"9. Conditions", mode:"scratch", desc:"A condition lets a program make a simple decision. Explore an if block and make your character react to something.", steps:["Open the Scratch activity.","Find the if block in Control.","Choose what condition should be checked.","Test what happens when the condition is true."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_10", term:1, title:"10. Coding Challenge", mode:"scratch", desc:"Bring sequencing, repetition and problem solving together in one Scratch challenge.", steps:["Open the Scratch activity.","Read the challenge carefully.","Plan your solution before building it.","Test, debug and improve your project."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_11", term:1, title:"11. What is a Robot?", mode:"scratch", desc:"Learn that robots are machines that can sense, process information and act. Use a Scratch simulation to explore the idea of a robot following instructions.", steps:["Open the Scratch activity.","Identify what the simulated robot is sensing or doing.","Give it a sequence of instructions.","Explain what makes the machine behave like a robot."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_12", term:1, title:"12. Robot Components", mode:"scratch", desc:"Explore the basic parts of a robot: power source, processor, sensors, motors/mechanics and actuators.", steps:["Open the Scratch activity.","Match each robot component to its job.","Use the simulation to see how a component affects the robot.","Complete the activity and return here."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_13", term:1, title:"13. Robot Instructions", mode:"scratch", desc:"Robots need clear, ordered instructions. Plan and test a set of instructions that gets the simulated robot to its target.", steps:["Open the Scratch activity.","Plan the route before coding.","Build the instructions in order.","Test and debug until the robot reaches the target."], scratchUrl:"https://scratch.mit.edu/" },
+  { id:"g4_t1_14", term:1, title:"14. Term 1 Challenge", mode:"scratch", isAssessment:true, desc:"Your Term 1 challenge brings together algorithms, sequencing, patterns, repetition, debugging and robot thinking.", steps:["Open the Scratch challenge.","Plan your algorithm first.","Build and test your Scratch solution.","Fix any errors and make sure the final project works."], scratchUrl:"https://scratch.mit.edu/" }
 ];
 
 const DEFAULT_EXERCISES_BY_GRADE = { "4": GRADE4_SCRATCH_EXERCISES, "5": DEFAULT_EXERCISES };
@@ -1212,6 +1260,29 @@ function onLearnerSelectChange() {
 }
 
 let completedExerciseIds = new Set();
+let previewMode = false;
+let previewReturnLearner = "";
+
+function previewExercise(exId) {
+  const i = EXERCISES.findIndex(e => e.id === exId);
+  if (i === -1) return;
+  previewMode = true;
+  switchTab("student");
+  document.getElementById("previewBanner").style.display = "block";
+  const sel = document.getElementById("exerciseSelect");
+  Array.from(sel.options).forEach(opt => { opt.disabled = false; opt.textContent = EXERCISES[Number(opt.value)].title; });
+  sel.value = String(i);
+  loadExercise();
+}
+
+function exitPreview() {
+  previewMode = false;
+  document.getElementById("previewBanner").style.display = "none";
+  const nameHidden = document.getElementById("learnerName");
+  const currentName = nameHidden ? nameHidden.value.trim() : "";
+  refreshLockingForLearner(currentName);
+  switchTab("teacher");
+}
 
 async function refreshLockingForLearner(name) {
   completedExerciseIds = new Set();
@@ -1271,13 +1342,18 @@ function loadExercise() {
   const ex = EXERCISES[idx];
   const scratchPanel = document.getElementById("scratchActivityPanel");
   const sequencePanel = document.getElementById("sequencePanel");
+  const kwlsPanel = document.getElementById("kwlsPanel");
+  const quizPanel = document.getElementById("quizPanel");
   const editor = document.getElementById("editor");
   const editorLabel = document.getElementById("editorLabel");
   const runBtn = document.getElementById("runBtn");
   const resetBtn = document.querySelector('#view-student .btn-row button.btn-ghost');
-  const isAlt = ex && (ex.mode === "scratch" || ex.mode === "sequence");
+  const altModes = ["scratch", "sequence", "kwls", "quiz"];
+  const isAlt = ex && altModes.includes(ex.mode);
   if (scratchPanel) scratchPanel.style.display = ex && ex.mode === "scratch" ? "block" : "none";
   if (sequencePanel) sequencePanel.style.display = ex && ex.mode === "sequence" ? "block" : "none";
+  if (kwlsPanel) kwlsPanel.style.display = ex && ex.mode === "kwls" ? "block" : "none";
+  if (quizPanel) quizPanel.style.display = ex && ex.mode === "quiz" ? "block" : "none";
   if (editorLabel) editorLabel.style.display = isAlt ? "none" : "block";
   if (editor) editor.style.display = isAlt ? "none" : "block";
   if (runBtn) runBtn.style.display = isAlt ? "none" : "inline-block";
@@ -1302,6 +1378,12 @@ function loadExercise() {
   }
   if (ex.mode === "sequence") {
     renderSequenceExercise(ex);
+  }
+  if (ex.mode === "kwls") {
+    renderKwlsExercise(ex);
+  }
+  if (ex.mode === "quiz") {
+    renderQuizExercise(ex);
   }
   document.getElementById("editor").value = ex.starter;
   document.getElementById("results").innerHTML = "";
@@ -1403,6 +1485,80 @@ function checkSequenceOrder() {
   const total = ex.cards.length;
   statusEl.style.color = "";
   statusEl.textContent = `You got ${correctCount} of ${total} steps in the right place. ${correctCount === total ? "Well done — click Save my progress!" : "Green cards are correct, red cards need another look."}`;
+  lastScore = { passed: correctCount, total: total, exerciseId: ex.id, exerciseTitle: ex.title };
+  document.getElementById("submitBtn").disabled = false;
+}
+
+function renderKwlsExercise(ex) {
+  document.getElementById("kwlsGrid").innerHTML = ex.prompts.map((p, i) => `
+    <label for="kwls${i}">${escapeHtml(p.label)}</label>
+    <textarea id="kwls${i}" oninput="checkKwlsComplete()"></textarea>
+  `).join("");
+  checkKwlsComplete();
+}
+
+function checkKwlsComplete() {
+  const idx = document.getElementById("exerciseSelect").value;
+  const ex = EXERCISES[idx];
+  if (!ex || ex.mode !== "kwls") return;
+  const allFilled = ex.prompts.every((p, i) => {
+    const el = document.getElementById("kwls" + i);
+    return el && el.value.trim().length > 0;
+  });
+  document.getElementById("submitBtn").disabled = !allFilled;
+  lastScore = allFilled ? { passed: 1, total: 1, exerciseId: ex.id, exerciseTitle: ex.title } : null;
+}
+
+function renderQuizExercise(ex) {
+  window._quizAnswers = {};
+  document.getElementById("quizQuestions").innerHTML = ex.questions.map((q, i) => `
+    <label>${i + 1}. ${escapeHtml(q.q)}</label>
+    <div class="mcq-options" id="quiz${i}">
+      ${q.options.map((opt, j) => `<button type="button" class="mcq-option" onclick="pickQuizOption(${i}, ${j})">${escapeHtml(opt)}</button>`).join("")}
+    </div>
+  `).join("");
+  document.getElementById("quizStatus").textContent = "";
+}
+
+function pickQuizOption(qIndex, optIndex) {
+  const idx = document.getElementById("exerciseSelect").value;
+  const ex = EXERCISES[idx];
+  if (!ex || ex.mode !== "quiz") return;
+  window._quizAnswers = window._quizAnswers || {};
+  window._quizAnswers[qIndex] = optIndex;
+  const container = document.getElementById("quiz" + qIndex);
+  Array.from(container.children).forEach((btn, j) => {
+    btn.classList.remove("mcq-selected-correct", "mcq-selected-wrong", "mcq-selected-neutral");
+    if (j === optIndex) btn.classList.add("mcq-selected-neutral");
+  });
+  document.getElementById("quizStatus").textContent = "";
+}
+
+function checkQuizAnswers() {
+  const idx = document.getElementById("exerciseSelect").value;
+  const ex = EXERCISES[idx];
+  if (!ex || ex.mode !== "quiz") return;
+  const statusEl = document.getElementById("quizStatus");
+  const answers = window._quizAnswers || {};
+  if (Object.keys(answers).length < ex.questions.length) {
+    statusEl.textContent = "Answer every question first.";
+    statusEl.style.color = "var(--danger)";
+    return;
+  }
+  let correctCount = 0;
+  ex.questions.forEach((q, i) => {
+    const container = document.getElementById("quiz" + i);
+    const chosen = answers[i];
+    Array.from(container.children).forEach((btn, j) => {
+      btn.classList.remove("mcq-selected-correct", "mcq-selected-wrong", "mcq-selected-neutral");
+      if (j === q.correct) btn.classList.add("mcq-selected-correct");
+      else if (j === chosen) btn.classList.add("mcq-selected-wrong");
+    });
+    if (chosen === q.correct) correctCount++;
+  });
+  const total = ex.questions.length;
+  statusEl.style.color = "";
+  statusEl.textContent = `You got ${correctCount} of ${total} correct.`;
   lastScore = { passed: correctCount, total: total, exerciseId: ex.id, exerciseTitle: ex.title };
   document.getElementById("submitBtn").disabled = false;
 }
@@ -1807,8 +1963,12 @@ async function runConsolidationTests() {
 }
 
 async function submitResult() {
-  const name = document.getElementById("learnerName").value.trim();
   const statusEl = document.getElementById("status");
+  if (previewMode) {
+    statusEl.textContent = "Preview mode — nothing is saved. Click \"Exit preview\" above when you're done.";
+    return;
+  }
+  const name = document.getElementById("learnerName").value.trim();
   if (!name) {
     statusEl.textContent = "Please choose or type your name before saving your score.";
     return;
@@ -2184,14 +2344,52 @@ function renderTeacherTable() {
     return;
   }
   rows.sort((a, b) => a.learner.localeCompare(b.learner) || a.exerciseTitle.localeCompare(b.exerciseTitle));
-  let html = `<table><tr><th>Learner</th><th>Exercise</th><th>Mark</th><th>Date</th></tr>`;
+  const learnerNames = [...new Set(teacherResults.map(r => r.learner))].sort();
+  let html = `<div class="row" style="align-items:flex-end; margin-bottom:10px;">
+    <div>
+      <label for="resetLearnerSelect">Reset all progress for</label>
+      <select id="resetLearnerSelect">
+        <option value="">Choose a learner…</option>
+        ${learnerNames.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("")}
+      </select>
+    </div>
+    <button class="btn btn-ghost" style="color:var(--danger);" onclick="resetAllForLearner()">Reset all their scores</button>
+  </div>`;
+  html += `<table><tr><th>Learner</th><th>Exercise</th><th>Mark</th><th>Date</th><th></th></tr>`;
   for (const r of rows) {
     const d = new Date(r.timestamp);
     const dateStr = isNaN(d) ? "" : d.toLocaleDateString();
-    html += `<tr><td>${r.learner}</td><td>${r.exerciseTitle}</td><td>${r.score} / ${r.total}</td><td>${dateStr}</td></tr>`;
+    html += `<tr><td>${r.learner}</td><td>${r.exerciseTitle}</td><td>${r.score} / ${r.total}</td><td>${dateStr}</td><td><button class="btn btn-ghost" style="padding:3px 8px; font-size:12px; color:var(--danger);" onclick="deleteSingleResult('${escapeHtml(r.learner).replace(/'/g, "\\'")}', '${r.exerciseId}')">Reset</button></td></tr>`;
   }
   html += `</table>`;
   wrap.innerHTML = html;
+}
+
+async function deleteSingleResult(learner, exerciseId) {
+  if (!confirm(`Reset ${learner}'s score for this exercise? They'll be able to redo it.`)) return;
+  try {
+    const state = await fetchRemoteState();
+    state.results = state.results.filter(r => !(r.learner === learner && r.exerciseId === exerciseId));
+    await saveRemoteState(state);
+    await loadTeacherData();
+  } catch (e) {
+    alert("Could not reset — check your internet connection and try again.");
+  }
+}
+
+async function resetAllForLearner() {
+  const sel = document.getElementById("resetLearnerSelect");
+  const learner = sel.value;
+  if (!learner) { alert("Choose a learner first."); return; }
+  if (!confirm(`Reset ALL of ${learner}'s saved scores? They'll start over from Exercise 1.`)) return;
+  try {
+    const state = await fetchRemoteState();
+    state.results = state.results.filter(r => r.learner !== learner);
+    await saveRemoteState(state);
+    await loadTeacherData();
+  } catch (e) {
+    alert("Could not reset — check your internet connection and try again.");
+  }
 }
 
 async function boot() {
@@ -2305,6 +2503,7 @@ function renderExerciseList() {
     html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:6px;">
       <span style="font-size:14px;">${escapeHtml(ex.title)}</span>
       <span style="display:flex; gap:6px; flex-shrink:0;">
+        <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px;" onclick="previewExercise('${ex.id}')" title="Try this exercise as a learner would">🧪 Preview</button>
         <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px;" onclick="moveExercise(${i}, -1)" ${prevSameTerm ? "" : "disabled"} title="Move up">↑</button>
         <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px;" onclick="moveExercise(${i}, 1)" ${nextSameTerm ? "" : "disabled"} title="Move down">↓</button>
         <button class="btn btn-ghost" style="padding:4px 8px; font-size:12px;" onclick="openExerciseForm(${i})">Edit</button>
