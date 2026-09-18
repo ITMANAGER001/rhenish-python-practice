@@ -1290,7 +1290,7 @@ async function refreshLockingForLearner(name) {
     try {
       const state = await fetchRemoteState();
       completedExerciseIds = new Set(
-        state.results.filter(r => r.learner === name && r.score >= r.total / 2).map(r => r.exerciseId)
+        state.results.filter(r => r.learner === name && r.score >= r.total / 2 && (r.grade || "5") === currentGrade).map(r => r.exerciseId)
       );
     } catch (e) { /* if offline, fall back to no progress known */ }
   }
@@ -1978,6 +1978,7 @@ async function submitResult() {
   const newResult = {
     learner: name,
     learnerClass: learnerClass,
+    grade: currentGrade,
     exerciseId: lastScore.exerciseId,
     exerciseTitle: lastScore.exerciseTitle,
     score: lastScore.passed,
@@ -1988,7 +1989,7 @@ async function submitResult() {
   try {
     const state = await fetchRemoteState();
     state.results = state.results.filter(
-      r => !(r.learner === name && r.exerciseId === lastScore.exerciseId)
+      r => !(r.learner === name && r.exerciseId === lastScore.exerciseId && (r.grade || "5") === currentGrade)
     );
     state.results.push(newResult);
     await saveRemoteState(state);
@@ -2105,7 +2106,7 @@ async function loadTeacherData() {
   wrap.innerHTML = `<div class="empty-note">Loading…</div>`;
   try {
     const state = await fetchRemoteState();
-    teacherResults = state.results;
+    teacherResults = state.results.map(r => ({ ...r, grade: r.grade || "5" }));
     roster = state.roster;
     if (state.exercisesByGrade) EXERCISES = exercisesForGrade(state, currentGrade);
     applyTabLabels(state.tabLabels);
@@ -2151,8 +2152,8 @@ async function saveTabLabels() {
 
 function populateReportLearnerSelect() {
   const sel = document.getElementById("reportLearnerSelect");
-  const rosterNames = roster.map(r => r.name);
-  const resultNames = teacherResults.map(r => r.learner);
+  const rosterNames = roster.filter(r => r.grade === currentGrade).map(r => r.name);
+  const resultNames = teacherResults.filter(r => r.grade === currentGrade).map(r => r.learner);
   const names = [...new Set([...rosterNames, ...resultNames])].sort((a, b) => a.localeCompare(b));
   const current = sel.value;
   sel.innerHTML = names.length
@@ -2185,7 +2186,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function suggestComment() {
   const name = document.getElementById("reportLearnerSelect").value;
   if (!name) return;
-  const rows = teacherResults.filter(r => r.learner === name);
+  const rows = teacherResults.filter(r => r.learner === name && r.grade === currentGrade);
   const assessments = EXERCISES.filter(ex => ex.isAssessment);
 
   const attempted = [];
@@ -2253,7 +2254,7 @@ async function buildReport() {
   const focus = document.getElementById("focusField").value.trim();
   await saveNotes(name, strengths, focus);
 
-  const rows = teacherResults.filter(r => r.learner === name);
+  const rows = teacherResults.filter(r => r.learner === name && r.grade === currentGrade);
   const rosterEntry = roster.find(r => r.name === name);
   const learnerClass = (rows.find(r => r.learnerClass)?.learnerClass) || (rosterEntry ? rosterEntry.className : "") || "";
   const learnerGrade = rosterEntry ? rosterEntry.grade : "";
@@ -2337,14 +2338,14 @@ async function printReport() {
 function renderTeacherTable() {
   const wrap = document.getElementById("teacherTableWrap");
   const filter = document.getElementById("learnerFilter").value.trim().toLowerCase();
-  let rows = teacherResults.slice();
+  let rows = teacherResults.filter(r => r.grade === currentGrade);
   if (filter) rows = rows.filter(r => r.learner.toLowerCase().includes(filter));
   if (rows.length === 0) {
-    wrap.innerHTML = `<div class="empty-note">No results found.</div>`;
+    wrap.innerHTML = `<div class="empty-note">No results found for Grade ${currentGrade}.</div>`;
     return;
   }
   rows.sort((a, b) => a.learner.localeCompare(b.learner) || a.exerciseTitle.localeCompare(b.exerciseTitle));
-  const learnerNames = [...new Set(teacherResults.map(r => r.learner))].sort();
+  const learnerNames = [...new Set(rows.map(r => r.learner))].sort();
   let html = `<div class="row" style="align-items:flex-end; margin-bottom:10px;">
     <div>
       <label for="resetLearnerSelect">Reset all progress for</label>
@@ -2369,7 +2370,7 @@ async function deleteSingleResult(learner, exerciseId) {
   if (!confirm(`Reset ${learner}'s score for this exercise? They'll be able to redo it.`)) return;
   try {
     const state = await fetchRemoteState();
-    state.results = state.results.filter(r => !(r.learner === learner && r.exerciseId === exerciseId));
+    state.results = state.results.filter(r => !(r.learner === learner && r.exerciseId === exerciseId && (r.grade || "5") === currentGrade));
     await saveRemoteState(state);
     await loadTeacherData();
   } catch (e) {
@@ -2381,10 +2382,10 @@ async function resetAllForLearner() {
   const sel = document.getElementById("resetLearnerSelect");
   const learner = sel.value;
   if (!learner) { alert("Choose a learner first."); return; }
-  if (!confirm(`Reset ALL of ${learner}'s saved scores? They'll start over from Exercise 1.`)) return;
+  if (!confirm(`Reset ALL of ${learner}'s Grade ${currentGrade} scores? They'll start Grade ${currentGrade} over from Exercise 1.`)) return;
   try {
     const state = await fetchRemoteState();
-    state.results = state.results.filter(r => r.learner !== learner);
+    state.results = state.results.filter(r => !(r.learner === learner && (r.grade || "5") === currentGrade));
     await saveRemoteState(state);
     await loadTeacherData();
   } catch (e) {
