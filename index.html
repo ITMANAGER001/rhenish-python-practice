@@ -344,7 +344,17 @@
         <div class="scratch-actions">
           <a class="btn btn-primary" id="scratchOpenBtn" href="https://scratch.mit.edu/" target="_blank" rel="noopener">↗ Open Scratch Activity</a>
         </div>
-        <div class="scratch-complete">
+        <div id="scratchLinkCheck" style="display:none; margin-top:14px; border-top:1px solid var(--border); padding-top:14px;">
+          <label for="scratchProjectUrl">Your shared Scratch project link</label>
+          <div class="note" style="margin-bottom:8px;">In Scratch, click "Share" on your project, then copy and paste the link here.</div>
+          <input type="text" id="scratchProjectUrl" placeholder="https://scratch.mit.edu/projects/123456789/">
+          <div class="btn-row" style="margin-top:10px;">
+            <button class="btn btn-primary" type="button" onclick="checkScratchProject()">Check my project</button>
+          </div>
+          <div id="scratchCheckResults" class="sequence-grid" style="margin-top:10px;"></div>
+          <div class="note" id="scratchCheckStatus"></div>
+        </div>
+        <div class="scratch-complete" id="scratchCheckboxRow">
           <input type="checkbox" id="scratchComplete" onchange="scratchCompletionChanged()">
           <label for="scratchComplete" style="margin:0;">I have completed the Scratch activity</label>
         </div>
@@ -1061,7 +1071,8 @@ const GRADE4_SCRATCH_EXERCISES = [
       "Debug: does the sprite go the correct direction? Fix it if not.",
       "Save your project as: Grade4_Wk3_YourName"
     ],
-    scratchUrl:"https://scratch.mit.edu/"
+    scratchUrl:"https://scratch.mit.edu/",
+    checkBlocks:{ keys:["up arrow","down arrow","left arrow","right arrow"] }
   },
   { id:"g4_t1_05", term:1, title:"5. Robots and Your Digital Footprint", mode:"quiz",
     desc:"A quick check on Virtual vs Physical robots, your digital footprint, and Input-Processing-Output — all from today's lesson.",
@@ -1400,6 +1411,12 @@ function loadExercise() {
     document.getElementById("scratchSteps").innerHTML = (ex.steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join("");
     document.getElementById("scratchOpenBtn").href = ex.scratchUrl || "https://scratch.mit.edu/";
     document.getElementById("scratchComplete").checked = false;
+    const hasCheck = !!ex.checkBlocks;
+    document.getElementById("scratchLinkCheck").style.display = hasCheck ? "block" : "none";
+    document.getElementById("scratchCheckboxRow").style.display = hasCheck ? "none" : "flex";
+    document.getElementById("scratchProjectUrl").value = "";
+    document.getElementById("scratchCheckResults").innerHTML = "";
+    document.getElementById("scratchCheckStatus").textContent = "";
   }
   if (ex.mode === "sequence") {
     renderSequenceExercise(ex);
@@ -1416,6 +1433,63 @@ function loadExercise() {
   document.getElementById("submitBtn").disabled = true;
   document.getElementById("submitBtn").textContent = ex.isAssessment ? "Save my mark" : "Save my progress";
   lastScore = null;
+}
+
+function extractScratchProjectId(url) {
+  const m = (url || "").match(/scratch\.mit\.edu\/projects\/(\d+)/);
+  return m ? m[1] : null;
+}
+
+async function checkScratchProject() {
+  const idx = document.getElementById("exerciseSelect").value;
+  const ex = EXERCISES[idx];
+  if (!ex || !ex.checkBlocks) return;
+  const url = document.getElementById("scratchProjectUrl").value.trim();
+  const statusEl = document.getElementById("scratchCheckStatus");
+  const resultsEl = document.getElementById("scratchCheckResults");
+  const projectId = extractScratchProjectId(url);
+  if (!projectId) {
+    statusEl.textContent = "That doesn't look like a Scratch project link. Click 'Share' in Scratch and paste the full link (e.g. https://scratch.mit.edu/projects/123456789/).";
+    statusEl.style.color = "var(--danger)";
+    return;
+  }
+  statusEl.style.color = "";
+  statusEl.textContent = "Checking your project…";
+  resultsEl.innerHTML = "";
+  let projectJson;
+  try {
+    const res = await fetch(`https://projects.scratch.mit.edu/${projectId}`);
+    if (!res.ok) throw new Error("not shared");
+    projectJson = await res.json();
+  } catch (e) {
+    statusEl.textContent = "Couldn't read that project. Make sure you clicked 'Share' in Scratch so it's public, then try again.";
+    statusEl.style.color = "var(--danger)";
+    return;
+  }
+  const blocks = {};
+  (projectJson.targets || []).forEach(t => Object.assign(blocks, t.blocks || {}));
+  const keyLabel = { "up arrow":"UP", "down arrow":"DOWN", "left arrow":"LEFT", "right arrow":"RIGHT" };
+  let correctCount = 0;
+  const cardsHtml = ex.checkBlocks.keys.map(key => {
+    const hatBlock = Object.values(blocks).find(b => b.opcode === "event_whenkeypressed" && b.fields && b.fields.KEY_OPTION && b.fields.KEY_OPTION[0] === key);
+    let found = false;
+    if (hatBlock && hatBlock.next && blocks[hatBlock.next]) {
+      let cur = blocks[hatBlock.next];
+      let hops = 0;
+      while (cur && hops < 6) {
+        if (cur.opcode === "motion_movesteps" || cur.opcode === "motion_gotoxy" || cur.opcode === "motion_changexby" || cur.opcode === "motion_changeyby") { found = true; break; }
+        cur = cur.next ? blocks[cur.next] : null;
+        hops++;
+      }
+    }
+    if (found) correctCount++;
+    return `<div class="sequence-card${found ? " card-correct" : " card-wrong"}"><div class="sequence-card-label">${keyLabel[key]} arrow key</div><div style="font-size:12px;">${found ? "Found a movement script ✓" : "No movement script found"}</div></div>`;
+  }).join("");
+  resultsEl.innerHTML = cardsHtml;
+  const total = ex.checkBlocks.keys.length;
+  statusEl.textContent = `${correctCount} of ${total} direction scripts found. ${correctCount === total ? "Great work — click Save my progress!" : "Keep building the missing ones, then check again."}`;
+  lastScore = { passed: correctCount, total: total, exerciseId: ex.id, exerciseTitle: ex.title, projectUrl: url };
+  document.getElementById("submitBtn").disabled = false;
 }
 
 function scratchCompletionChanged() {
@@ -2008,6 +2082,7 @@ async function submitResult() {
     exerciseTitle: lastScore.exerciseTitle,
     score: lastScore.passed,
     total: lastScore.total,
+    projectUrl: lastScore.projectUrl || "",
     timestamp: new Date().toISOString()
   };
   statusEl.textContent = "Saving…";
@@ -2488,11 +2563,12 @@ function renderTeacherTable() {
     </div>
     <button class="btn btn-ghost" style="color:var(--danger);" onclick="resetAllForLearner()">Reset all their scores</button>
   </div>`;
-  html += `<table><tr><th>Learner</th><th>Exercise</th><th>Mark</th><th>Date</th><th></th></tr>`;
+  html += `<table><tr><th>Learner</th><th>Exercise</th><th>Mark</th><th>Date</th><th>Project</th><th></th></tr>`;
   for (const r of rows) {
     const d = new Date(r.timestamp);
     const dateStr = isNaN(d) ? "" : d.toLocaleDateString();
-    html += `<tr><td>${r.learner}</td><td>${r.exerciseTitle}</td><td>${r.score} / ${r.total}</td><td>${dateStr}</td><td><button class="btn btn-ghost" style="padding:3px 8px; font-size:12px; color:var(--danger);" onclick="deleteSingleResult('${escapeHtml(r.learner).replace(/'/g, "\\'")}', '${r.exerciseId}')">Reset</button></td></tr>`;
+    const projectLink = r.projectUrl ? `<a href="${escapeHtml(r.projectUrl)}" target="_blank" rel="noopener">View project ↗</a>` : "";
+    html += `<tr><td>${r.learner}</td><td>${r.exerciseTitle}</td><td>${r.score} / ${r.total}</td><td>${dateStr}</td><td>${projectLink}</td><td><button class="btn btn-ghost" style="padding:3px 8px; font-size:12px; color:var(--danger);" onclick="deleteSingleResult('${escapeHtml(r.learner).replace(/'/g, "\\'")}', '${r.exerciseId}')">Reset</button></td></tr>`;
   }
   html += `</table>`;
   wrap.innerHTML = html;
