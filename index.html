@@ -208,6 +208,16 @@
   .mcq-option.mcq-selected-wrong { border-color:var(--danger); background:var(--danger-bg); }
   .mcq-option.mcq-selected-neutral { border-color:var(--navy-light); background:#EEF2FA; }
   .mcq-feedback { font-size:12px; margin-top:4px; }
+  .lesson-slide { display:none; flex-direction:column; gap:12px; }
+  .lesson-slide.active { display:flex; }
+  .lesson-eyebrow { font-size:12px; color:var(--muted); }
+  .lesson-slide h1 { font-size:26px; font-weight:600; margin:0; color:var(--navy); }
+  .lesson-slide h2 { font-size:19px; font-weight:600; margin:0; color:var(--navy); }
+  .lesson-slide p { font-size:14px; line-height:1.6; margin:0; color:var(--navy); }
+  .lesson-callout { background:#FFF3E0; border-radius:8px; padding:12px 14px; font-size:14px; color:var(--navy); }
+  .lesson-steps { display:flex; gap:8px; flex-wrap:wrap; }
+  .lesson-step { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; flex:1 1 80px; text-align:center; }
+  [contenteditable="true"] { outline:1px dashed #F57C00; outline-offset:2px; border-radius:4px; }
   #reportCard { display: none; }
   .report-page {
     background: #fff;
@@ -392,6 +402,20 @@
   </div>
 
   <div id="view-teacher" style="display:none;">
+    <div class="card no-print" id="lessonSlidesCard">
+      <label>Lesson slides — Week 1, Lesson 1</label>
+      <div class="note" style="margin-bottom:10px;">Present this to the class on your screen, or click "Edit slides" to change the text.</div>
+      <div id="lessonDeck" style="background:var(--cream); border:1px solid var(--border); border-radius:12px; padding:28px 24px; min-height:200px; display:flex; flex-direction:column; justify-content:center;"></div>
+      <div class="btn-row" style="margin-top:12px; align-items:center;">
+        <button class="btn btn-ghost" onclick="lessonGo(-1)" id="lessonPrevBtn">Back</button>
+        <span class="note" id="lessonCounter" style="margin:0;">1 / 4</span>
+        <button class="btn btn-ghost" onclick="lessonGo(1)" id="lessonNextBtn">Next</button>
+        <button class="btn btn-ghost" onclick="toggleLessonEdit()" id="lessonEditBtn" style="margin-left:auto;">Edit slides</button>
+        <button class="btn btn-ghost" onclick="cancelLessonEdit()" id="lessonCancelBtn" style="display:none;">Cancel</button>
+      </div>
+      <div class="note" id="lessonSaveStatus"></div>
+    </div>
+
     <div class="card no-print">
       <label for="rosterField">Class list (one learner per line — "Name, Class, Grade", e.g. "Zoe Adams, 4A, 4". Grade is worked out from the class if you leave it out.)</label>
       <textarea class="note-field" id="rosterField" style="min-height:110px;" placeholder="Zoe Adams, 4A, 4&#10;Sam Petersen, 4A, 4&#10;Thabo Nkosi, 5B, 5"></textarea>
@@ -1099,6 +1123,7 @@ async function fetchRemoteState() {
     exercisesByGrade: data.exercisesByGrade && typeof data.exercisesByGrade === "object" ? data.exercisesByGrade : {},
     consolidationByGrade: data.consolidationByGrade && typeof data.consolidationByGrade === "object" ? data.consolidationByGrade : {},
     tabLabels: data.tabLabels && typeof data.tabLabels === "object" ? data.tabLabels : {},
+    lessonSlides: data.lessonSlides && typeof data.lessonSlides === "object" ? data.lessonSlides : {},
     teacherPin: typeof data.teacherPin === "string" ? data.teacherPin : "1975!",
     pageHeading: data.pageHeading && typeof data.pageHeading === "object" ? data.pageHeading : {}
   };
@@ -2092,7 +2117,7 @@ function switchTab(tab) {
   document.getElementById("tab-student").classList.toggle("active", tab === "student");
   document.getElementById("tab-consolidation").classList.toggle("active", tab === "consolidation");
   document.getElementById("tab-teacher").classList.toggle("active", tab === "teacher");
-  if (tab === "teacher") loadTeacherData();
+  if (tab === "teacher") { loadTeacherData(); loadLessonDeck(); }
   if (tab === "consolidation") {
     populateConsolidationSelect();
     loadConsolidationExercise();
@@ -2100,6 +2125,113 @@ function switchTab(tab) {
 }
 
 let teacherResults = [];
+
+const LESSON_SLIDE_KEY = "wk1_lesson1";
+const DEFAULT_LESSON_DECK_HTML = `
+  <div class="lesson-slide active">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 1</div>
+    <h1 contenteditable="false">What is an algorithm?</h1>
+    <p contenteditable="false">Grade 4 · Coding and Robotics · Week 1, Lesson 1</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 2 · Introduction (5 min)</div>
+    <h2 contenteditable="false">An algorithm is like a recipe</h2>
+    <div class="lesson-callout" contenteditable="false">It tells you exactly what to do, one step at a time. If a step is unclear or out of order, the result might not turn out as expected.</div>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 3 · Worked example</div>
+    <h2 contenteditable="false">Brushing your teeth, step by step</h2>
+    <div class="lesson-steps">
+      <div class="lesson-step" contenteditable="false">1. Wet brush</div>
+      <div class="lesson-step" contenteditable="false">2. Add paste</div>
+      <div class="lesson-step" contenteditable="false">3. Brush</div>
+    </div>
+    <p contenteditable="false">Notice: each step is clear and in order. Missing or mixing up steps can lead to problems.</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 4 · Main activity (20 min)</div>
+    <h2 contenteditable="false">Your turn — write your algorithm</h2>
+    <p contenteditable="false">In pairs: choose a task, write 7–12 clear steps, then swap with another pair and test each other's algorithm.</p>
+  </div>`;
+
+let lessonIndex = 0;
+let lessonEditing = false;
+
+function lessonSlideEls() {
+  return document.querySelectorAll("#lessonDeck .lesson-slide");
+}
+
+function lessonRender() {
+  const slides = lessonSlideEls();
+  slides.forEach((s, idx) => s.classList.toggle("active", idx === lessonIndex));
+  document.getElementById("lessonCounter").textContent = slides.length ? (lessonIndex + 1) + " / " + slides.length : "0 / 0";
+  document.getElementById("lessonPrevBtn").disabled = lessonIndex === 0;
+  document.getElementById("lessonNextBtn").disabled = lessonIndex >= slides.length - 1;
+}
+
+function lessonGo(d) {
+  const slides = lessonSlideEls();
+  lessonIndex = Math.min(slides.length - 1, Math.max(0, lessonIndex + d));
+  lessonRender();
+}
+
+async function loadLessonDeck() {
+  const deckEl = document.getElementById("lessonDeck");
+  deckEl.innerHTML = DEFAULT_LESSON_DECK_HTML;
+  lessonIndex = 0;
+  lessonRender();
+  try {
+    const state = await fetchRemoteState();
+    const saved = state.lessonSlides && state.lessonSlides[LESSON_SLIDE_KEY];
+    if (saved && saved.html) {
+      deckEl.innerHTML = saved.html;
+      lessonIndex = 0;
+      lessonRender();
+    }
+  } catch (e) { /* offline: keep default content */ }
+}
+
+function toggleLessonEdit() {
+  if (!lessonEditing) {
+    lessonEditing = true;
+    document.querySelectorAll("#lessonDeck .lesson-eyebrow, #lessonDeck h1, #lessonDeck h2, #lessonDeck p, #lessonDeck .lesson-callout, #lessonDeck .lesson-step")
+      .forEach(el => el.setAttribute("contenteditable", "true"));
+    document.getElementById("lessonEditBtn").textContent = "Save changes";
+    document.getElementById("lessonCancelBtn").style.display = "inline-block";
+    document.getElementById("lessonSaveStatus").textContent = "Editing — click into any text to change it.";
+  } else {
+    saveLessonEdits();
+  }
+}
+
+function cancelLessonEdit() {
+  lessonEditing = false;
+  document.getElementById("lessonEditBtn").textContent = "Edit slides";
+  document.getElementById("lessonCancelBtn").style.display = "none";
+  document.getElementById("lessonSaveStatus").textContent = "";
+  loadLessonDeck();
+}
+
+async function saveLessonEdits() {
+  const deckEl = document.getElementById("lessonDeck");
+  deckEl.querySelectorAll("[contenteditable]").forEach(el => el.setAttribute("contenteditable", "false"));
+  const html = deckEl.innerHTML;
+  const statusEl = document.getElementById("lessonSaveStatus");
+  statusEl.textContent = "Saving…";
+  try {
+    const state = await fetchRemoteState();
+    state.lessonSlides = state.lessonSlides || {};
+    state.lessonSlides[LESSON_SLIDE_KEY] = { html };
+    await saveRemoteState(state);
+    lessonEditing = false;
+    document.getElementById("lessonEditBtn").textContent = "Edit slides";
+    document.getElementById("lessonCancelBtn").style.display = "none";
+    statusEl.textContent = "Saved!";
+    lessonRender();
+  } catch (e) {
+    statusEl.textContent = "Could not save — check your internet connection and try again.";
+  }
+}
 
 async function loadTeacherData() {
   const wrap = document.getElementById("teacherTableWrap");
