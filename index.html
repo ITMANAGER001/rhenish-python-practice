@@ -1457,12 +1457,28 @@ async function checkScratchProject() {
   statusEl.textContent = "Checking your project…";
   resultsEl.innerHTML = "";
   let projectJson;
+  let token = null;
   try {
-    const res = await fetch(`https://projects.scratch.mit.edu/${projectId}`);
-    if (!res.ok) throw new Error("not shared");
+    const metaRes = await fetch(`https://trampoline.turbowarp.org/api/projects/${projectId}`);
+    if (metaRes.status === 404) throw new Error("unshared");
+    if (metaRes.ok) {
+      const meta = await metaRes.json();
+      token = meta.project_token || null;
+    }
+  } catch (e) {
+    statusEl.textContent = "Couldn't find that project. Make sure you clicked 'Share' in Scratch so it's public, then try again.";
+    statusEl.style.color = "var(--danger)";
+    return;
+  }
+  try {
+    const contentUrl = token
+      ? `https://projects.scratch.mit.edu/${projectId}?token=${token}`
+      : `https://projects.scratch.mit.edu/${projectId}`;
+    const res = await fetch(contentUrl);
+    if (!res.ok) throw new Error("project fetch failed");
     projectJson = await res.json();
   } catch (e) {
-    statusEl.textContent = "Couldn't read that project. Make sure you clicked 'Share' in Scratch so it's public, then try again.";
+    statusEl.textContent = "Found the project but couldn't load its contents. Check your internet connection and try again.";
     statusEl.style.color = "var(--danger)";
     return;
   }
