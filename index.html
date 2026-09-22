@@ -217,6 +217,17 @@
   .lesson-callout { background:#FFF3E0; border-radius:8px; padding:12px 14px; font-size:14px; color:var(--navy); }
   .lesson-steps { display:flex; gap:8px; flex-wrap:wrap; }
   .lesson-step { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; flex:1 1 80px; text-align:center; }
+  #lessonPresentWrap:fullscreen { background:var(--cream); display:flex; align-items:center; justify-content:center; padding:6vw; }
+  #lessonPresentWrap:fullscreen #lessonDeck { border:none; background:transparent; width:100%; max-width:900px; min-height:unset; }
+  #lessonPresentWrap:fullscreen .lesson-eyebrow { font-size:20px; }
+  #lessonPresentWrap:fullscreen .lesson-slide h1 { font-size:56px; }
+  #lessonPresentWrap:fullscreen .lesson-slide h2 { font-size:40px; }
+  #lessonPresentWrap:fullscreen .lesson-slide p { font-size:26px; }
+  #lessonPresentWrap:fullscreen .lesson-callout { font-size:26px; padding:20px 24px; }
+  #lessonPresentWrap:fullscreen .lesson-step { font-size:22px; padding:16px 18px; }
+  #lessonPresentWrap:fullscreen .lesson-nav { position:fixed; bottom:24px; left:0; right:0; display:flex; justify-content:center; gap:16px; }
+  #lessonPresentWrap:fullscreen .lesson-nav button { font-size:16px; padding:12px 24px; }
+  #lessonPresentWrap:fullscreen #lessonEditBtn, #lessonPresentWrap:fullscreen #lessonCancelBtn, #lessonPresentWrap:fullscreen #lessonPresentBtn { display:none; }
   [contenteditable="true"] { outline:1px dashed #F57C00; outline-offset:2px; border-radius:4px; }
   #reportCard { display: none; }
   .report-page {
@@ -415,13 +426,16 @@
     <div class="card no-print" id="lessonSlidesCard">
       <label>Lesson slides — Week 1, Lesson 1</label>
       <div class="note" style="margin-bottom:10px;">Present this to the class on your screen, or click "Edit slides" to change the text.</div>
-      <div id="lessonDeck" style="background:var(--cream); border:1px solid var(--border); border-radius:12px; padding:28px 24px; min-height:200px; display:flex; flex-direction:column; justify-content:center;"></div>
-      <div class="btn-row" style="margin-top:12px; align-items:center;">
-        <button class="btn btn-ghost" onclick="lessonGo(-1)" id="lessonPrevBtn">Back</button>
-        <span class="note" id="lessonCounter" style="margin:0;">1 / 4</span>
-        <button class="btn btn-ghost" onclick="lessonGo(1)" id="lessonNextBtn">Next</button>
-        <button class="btn btn-ghost" onclick="toggleLessonEdit()" id="lessonEditBtn" style="margin-left:auto;">Edit slides</button>
-        <button class="btn btn-ghost" onclick="cancelLessonEdit()" id="lessonCancelBtn" style="display:none;">Cancel</button>
+      <div id="lessonPresentWrap">
+        <div id="lessonDeck" style="background:var(--cream); border:1px solid var(--border); border-radius:12px; padding:28px 24px; min-height:200px; display:flex; flex-direction:column; justify-content:center;"></div>
+        <div class="btn-row lesson-nav" style="margin-top:12px; align-items:center;">
+          <button class="btn btn-ghost" onclick="lessonGo(-1)" id="lessonPrevBtn">Back</button>
+          <span class="note" id="lessonCounter" style="margin:0;">1 / 4</span>
+          <button class="btn btn-ghost" onclick="lessonGo(1)" id="lessonNextBtn">Next</button>
+          <button class="btn btn-ghost" onclick="toggleLessonEdit()" id="lessonEditBtn" style="margin-left:auto;">Edit slides</button>
+          <button class="btn btn-ghost" onclick="cancelLessonEdit()" id="lessonCancelBtn" style="display:none;">Cancel</button>
+          <button class="btn btn-primary" onclick="toggleLessonPresent()" id="lessonPresentBtn">⛶ Present</button>
+        </div>
       </div>
       <div class="note" id="lessonSaveStatus"></div>
     </div>
@@ -2265,6 +2279,24 @@ function lessonGo(d) {
   lessonIndex = Math.min(slides.length - 1, Math.max(0, lessonIndex + d));
   lessonRender();
 }
+
+function toggleLessonPresent() {
+  const wrap = document.getElementById("lessonPresentWrap");
+  if (!document.fullscreenElement) {
+    wrap.requestFullscreen().catch(() => {
+      alert("Fullscreen isn't available on this device/browser — you can still present from the normal view.");
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (!document.fullscreenElement || document.fullscreenElement.id !== "lessonPresentWrap") return;
+  if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); lessonGo(1); }
+  if (e.key === "ArrowLeft") lessonGo(-1);
+  if (e.key === "Escape") document.exitFullscreen();
+});
 
 async function loadLessonDeck() {
   const deckEl = document.getElementById("lessonDeck");
