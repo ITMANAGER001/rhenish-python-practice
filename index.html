@@ -295,8 +295,8 @@
     <div class="tabs no-print">
       <div id="activeGradeContainer" style="margin-right:8px;">
         <select id="activeGradeSelect" onchange="onActiveGradeChange()" style="padding:9px 10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
-          <option value="4">Grade 4</option>
-          <option value="5" selected>Grade 5</option>
+          <option value="4" selected>Grade 4</option>
+          <option value="5">Grade 5</option>
           <option value="6">Grade 6</option>
         </select>
       </div>
@@ -1098,7 +1098,7 @@ const GRADE4_SCRATCH_EXERCISES = [
 const DEFAULT_EXERCISES_BY_GRADE = { "4": GRADE4_SCRATCH_EXERCISES, "5": DEFAULT_EXERCISES };
 const DEFAULT_CONSOLIDATION_BY_GRADE = { "5": DEFAULT_CONSOLIDATION_EXERCISES };
 
-let currentGrade = "5";
+let currentGrade = "4";
 let EXERCISES = DEFAULT_EXERCISES;
 let CONSOLIDATION_EXERCISES = DEFAULT_CONSOLIDATION_EXERCISES;
 
