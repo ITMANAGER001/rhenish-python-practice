@@ -424,8 +424,14 @@
 
   <div id="view-teacher" style="display:none;">
     <div class="card no-print" id="lessonSlidesCard">
-      <label>Lesson slides — Week 1, Lesson 1</label>
+      <label>Lesson slides</label>
       <div class="note" style="margin-bottom:10px;">Present this to the class on your screen, or click "Edit slides" to change the text.</div>
+      <select id="lessonDeckSelect" onchange="switchLessonDeck()" style="margin-bottom:12px; padding:8px 10px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+        <option value="wk1_lesson1">Week 1, Lesson 1 — What is an algorithm?</option>
+        <option value="wk4">Week 4 — Sprite Basics & Planning About Me</option>
+        <option value="wk5">Week 5 — Loops & Building About Me</option>
+        <option value="wk6">Week 6 — forever Loops & Patrol Robot</option>
+      </select>
       <div id="lessonPresentWrap">
         <div id="lessonDeck" style="background:var(--cream); border:1px solid var(--border); border-radius:12px; padding:28px 24px; min-height:200px; display:flex; flex-direction:column; justify-content:center;"></div>
         <div class="btn-row lesson-nav" style="margin-top:12px; align-items:center;">
@@ -1498,26 +1504,37 @@ async function checkScratchProject() {
   }
   const blocks = {};
   (projectJson.targets || []).forEach(t => Object.assign(blocks, t.blocks || {}));
-  const keyLabel = { "up arrow":"UP", "down arrow":"DOWN", "left arrow":"LEFT", "right arrow":"RIGHT" };
   let correctCount = 0;
-  const cardsHtml = ex.checkBlocks.keys.map(key => {
-    const hatBlock = Object.values(blocks).find(b => b.opcode === "event_whenkeypressed" && b.fields && b.fields.KEY_OPTION && b.fields.KEY_OPTION[0] === key);
-    let found = false;
-    if (hatBlock && hatBlock.next && blocks[hatBlock.next]) {
-      let cur = blocks[hatBlock.next];
-      let hops = 0;
-      while (cur && hops < 6) {
-        if (cur.opcode === "motion_movesteps" || cur.opcode === "motion_gotoxy" || cur.opcode === "motion_changexby" || cur.opcode === "motion_changeyby") { found = true; break; }
-        cur = cur.next ? blocks[cur.next] : null;
-        hops++;
+  let cardsHtml = "";
+  let total = 0;
+  if (ex.checkBlocks.type === "opcodes") {
+    total = ex.checkBlocks.required.length;
+    cardsHtml = ex.checkBlocks.required.map(req => {
+      const found = Object.values(blocks).some(b => b.opcode === req.opcode);
+      if (found) correctCount++;
+      return `<div class="sequence-card${found ? " card-correct" : " card-wrong"}"><div class="sequence-card-label">${escapeHtml(req.label)}</div><div style="font-size:12px;">${found ? "Found ✓" : "Not found"}</div></div>`;
+    }).join("");
+  } else {
+    const keyLabel = { "up arrow":"UP", "down arrow":"DOWN", "left arrow":"LEFT", "right arrow":"RIGHT" };
+    total = ex.checkBlocks.keys.length;
+    cardsHtml = ex.checkBlocks.keys.map(key => {
+      const hatBlock = Object.values(blocks).find(b => b.opcode === "event_whenkeypressed" && b.fields && b.fields.KEY_OPTION && b.fields.KEY_OPTION[0] === key);
+      let found = false;
+      if (hatBlock && hatBlock.next && blocks[hatBlock.next]) {
+        let cur = blocks[hatBlock.next];
+        let hops = 0;
+        while (cur && hops < 6) {
+          if (cur.opcode === "motion_movesteps" || cur.opcode === "motion_gotoxy" || cur.opcode === "motion_changexby" || cur.opcode === "motion_changeyby") { found = true; break; }
+          cur = cur.next ? blocks[cur.next] : null;
+          hops++;
+        }
       }
-    }
-    if (found) correctCount++;
-    return `<div class="sequence-card${found ? " card-correct" : " card-wrong"}"><div class="sequence-card-label">${keyLabel[key]} arrow key</div><div style="font-size:12px;">${found ? "Found a movement script ✓" : "No movement script found"}</div></div>`;
-  }).join("");
+      if (found) correctCount++;
+      return `<div class="sequence-card${found ? " card-correct" : " card-wrong"}"><div class="sequence-card-label">${keyLabel[key]} arrow key</div><div style="font-size:12px;">${found ? "Found a movement script ✓" : "No movement script found"}</div></div>`;
+    }).join("");
+  }
   resultsEl.innerHTML = cardsHtml;
-  const total = ex.checkBlocks.keys.length;
-  statusEl.textContent = `${correctCount} of ${total} direction scripts found. ${correctCount === total ? "Great work — click Save my progress!" : "Keep building the missing ones, then check again."}`;
+  statusEl.textContent = `${correctCount} of ${total} found. ${correctCount === total ? "Great work — click Save my progress!" : "Keep building the missing parts, then check again."}`;
   lastScore = { passed: correctCount, total: total, exerciseId: ex.id, exerciseTitle: ex.title, projectUrl: url };
   document.getElementById("submitBtn").disabled = false;
 }
@@ -2231,8 +2248,10 @@ function switchTab(tab) {
 
 let teacherResults = [];
 
-const LESSON_SLIDE_KEY = "wk1_lesson1";
-const DEFAULT_LESSON_DECK_HTML = `
+const LESSON_DECKS = {
+  "wk1_lesson1": {
+    label: "Week 1, Lesson 1 — What is an algorithm?",
+    html: `
   <div class="lesson-slide active">
     <div class="lesson-eyebrow" contenteditable="false">Slide 1</div>
     <h1 contenteditable="false">What is an algorithm?</h1>
@@ -2257,7 +2276,102 @@ const DEFAULT_LESSON_DECK_HTML = `
     <div class="lesson-eyebrow" contenteditable="false">Slide 4 · Main activity (20 min)</div>
     <h2 contenteditable="false">Your turn — write your algorithm</h2>
     <p contenteditable="false">In pairs: choose a task, write 7–12 clear steps, then swap with another pair and test each other's algorithm.</p>
-  </div>`;
+  </div>`
+  },
+  "wk4": {
+    label: "Week 4 — Sprite Basics & Planning About Me",
+    html: `
+  <div class="lesson-slide active">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 1</div>
+    <h1 contenteditable="false">Sprite Basics & Planning "About Me"</h1>
+    <p contenteditable="false">Grade 4 · Coding and Robotics · Week 4</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 2 · Explore your sprite</div>
+    <h2 contenteditable="false">Code, Costumes, Sounds</h2>
+    <div class="lesson-callout" contenteditable="false">Every sprite has three tabs. Code makes it do things, Costumes changes how it looks, Sounds gives it audio.</div>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 3 · Add a sound</div>
+    <h2 contenteditable="false">Give your sprite a voice</h2>
+    <p contenteditable="false">Pick a sound from the library, then attach it to an event block so it plays when something happens.</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 4 · Planning (Design Thinking)</div>
+    <h2 contenteditable="false">Who is your "About Me" story for?</h2>
+    <p contenteditable="false">Before you code anything, plan it: who will watch it, and what do you want them to know about you — safely?</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 5 · Your turn</div>
+    <h2 contenteditable="false">Complete your storyboard</h2>
+    <p contenteditable="false">Fill in your 2-scene storyboard. This is your entry ticket to build your project in Scratch next lesson.</p>
+  </div>`
+  },
+  "wk5": {
+    label: "Week 5 — Loops & Building About Me",
+    html: `
+  <div class="lesson-slide active">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 1</div>
+    <h1 contenteditable="false">Loops: repeat() and Building "About Me"</h1>
+    <p contenteditable="false">Grade 4 · Coding and Robotics · Week 5</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 2 · Unplugged (5 min)</div>
+    <h2 contenteditable="false">Do it 10 times... without repeating yourself</h2>
+    <div class="lesson-callout" contenteditable="false">Try a physical action 10 times. Now imagine writing "move 10 steps" ten separate times in Scratch — there's a better way.</div>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 3 · PRIMM</div>
+    <h2 contenteditable="false">Predict, Run, Investigate, Modify</h2>
+    <p contenteditable="false">Look at a repeat(10) script before running it. What do you think it will do? Then run it and check.</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 4 · Main build (20 min)</div>
+    <h2 contenteditable="false">Build your "About Me" project</h2>
+    <div class="lesson-steps">
+      <div class="lesson-step" contenteditable="false">Move with repeat(10)</div>
+      <div class="lesson-step" contenteditable="false">Change costume</div>
+      <div class="lesson-step" contenteditable="false">Play a sound</div>
+    </div>
+    <p contenteditable="false">Your sprite should introduce you safely, move using a loop, change costume, and respond when clicked.</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 5 · Stay safe</div>
+    <h2 contenteditable="false">Share only safe information</h2>
+    <p contenteditable="false">No address, phone number, password, school login, or full birthdate — ever, even in a fun project.</p>
+  </div>`
+  },
+  "wk6": {
+    label: "Week 6 — forever Loops & Patrol Robot",
+    html: `
+  <div class="lesson-slide active">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 1</div>
+    <h1 contenteditable="false">forever Loops & Your Patrol Robot</h1>
+    <p contenteditable="false">Grade 4 · Coding and Robotics · Week 6</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 2 · Two kinds of loop</div>
+    <h2 contenteditable="false">repeat(10) vs forever</h2>
+    <div class="lesson-callout" contenteditable="false">repeat(10) runs a set number of times, then stops. forever keeps going until you stop the program yourself.</div>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 3 · The challenge</div>
+    <h2 contenteditable="false">Build a Virtual Patrol Robot</h2>
+    <p contenteditable="false">The school needs a robot that patrols the Scratch stage and reminds learners to keep their passwords safe — using a made-up example only.</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 4 · Think it through</div>
+    <h2 contenteditable="false">Sense → Decide → Act</h2>
+    <p contenteditable="false">Plan your robot's behaviour before you build: what does it sense, what does it decide, what does it do?</p>
+  </div>
+  <div class="lesson-slide">
+    <div class="lesson-eyebrow" contenteditable="false">Slide 5 · Test it</div>
+    <h2 contenteditable="false">Build, test, improve</h2>
+    <p contenteditable="false">What did you check? What did you fix? How do you know it works? Next: timing and debugging.</p>
+  </div>`
+  }
+};
+let LESSON_SLIDE_KEY = "wk1_lesson1";
 
 let lessonIndex = 0;
 let lessonEditing = false;
@@ -2300,7 +2414,7 @@ document.addEventListener("keydown", (e) => {
 
 async function loadLessonDeck() {
   const deckEl = document.getElementById("lessonDeck");
-  deckEl.innerHTML = DEFAULT_LESSON_DECK_HTML;
+  deckEl.innerHTML = LESSON_DECKS[LESSON_SLIDE_KEY].html;
   lessonIndex = 0;
   lessonRender();
   try {
@@ -2312,6 +2426,11 @@ async function loadLessonDeck() {
       lessonRender();
     }
   } catch (e) { /* offline: keep default content */ }
+}
+
+function switchLessonDeck() {
+  LESSON_SLIDE_KEY = document.getElementById("lessonDeckSelect").value;
+  loadLessonDeck();
 }
 
 function toggleLessonEdit() {
